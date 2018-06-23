@@ -5,6 +5,8 @@ from b2_exceptions import B2ApplicationKeyNotSet, B2KeyIDNotSet, B2InvalidBucket
 from b2_exceptions import B2BucketCreationError
 from connector import B2Connector
 
+from objects.bucket import B2Bucket
+from objects.bucket_list import B2Buckets
 
 class B2(object):
 
@@ -21,35 +23,7 @@ class B2(object):
         self.connector = B2Connector(key_id=self.key_id, application_key=self.application_key)
 
 
-    def create_bucket(self, Bucket, CreateBucketConfiguration=None):
-        path = '/b2_create_bucket'
-        if type(Bucket) != str or type(Bucket) != bytes:
-            raise B2InvalidBucketName
-        if type(CreateBucketConfiguration) != dict and CreateBucketConfiguration is not None:
-            raise B2InvalidBucketConfiguration
-        params = {
-            'bucketName': Bucket,
-            'bucketType': 'allPublic',
-            #TODO: bucketInfo
-            #TODO: corsRules
-            #TODO: lifeCycleRules
-        }
-        response = self.connector.make_request(path=path, method='post', params=params, account_id_required=True)
-        if response.status_code == 200:
-            print(response.json())
-        else:
-            print(response.status_code)
-            raise B2BucketCreationError(str(response.json()))
-
-    def Object(self, bucket, file_name):
-        pass
-
-
-    def Bucket(self, bucket_name):
-        pass
-
-
     @property
     def buckets(self):
-        return []
+        return B2Buckets(connector=self.connector)
 

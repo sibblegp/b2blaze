@@ -49,11 +49,11 @@ class B2Connector(object):
             raise B2AuthorizationError
 
 
-    def make_request(self, path, method='get', headers={}, params=None, account_id_required=False):
+    def make_request(self, path, method='get', headers={}, params={}, account_id_required=False):
         if self.authorized:
             url = self.api_url + path
             if method == 'get':
-                pass
+                return self.api_session.get(url, headers=headers)
             elif method == 'post':
                 if account_id_required:
                     params.update({
