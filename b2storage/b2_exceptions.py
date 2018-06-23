@@ -12,3 +12,6 @@ class B2InvalidBucketConfiguration(Exception):
 
 class B2AuthorizationError(Exception):
     pass
+
+class B2BucketCreationError(Exception):
+    pass
