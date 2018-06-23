@@ -13,8 +13,10 @@ class TestB2:
         cls.b2 = b2lib.B2()
         cls.bucket_name = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase) for _ in range(7))
 
+
     def test_create_b2_instance(self):
         b2 = b2lib.B2()
+
 
     def test_create_bucket(self):
         self.b2.create_bucket(self.bucket_name)

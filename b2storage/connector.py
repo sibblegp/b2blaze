@@ -65,3 +65,5 @@ class B2Connector(object):
                 return self.api_session.post(url, json=params, headers=headers)
             else:
                 raise ValueError
+        else:
+            raise B2AuthorizationError
