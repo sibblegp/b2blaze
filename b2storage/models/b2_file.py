@@ -1,4 +1,4 @@
-
+from io import BytesIO
 
 class B2File:
 
@@ -32,5 +32,7 @@ class B2File:
             raise ValueError
             #TODO:  Raise Error
 
-    def edit(self):
-        pass
+    def download(self):
+        response = self.connector.download_file(file_id=self.file_id)
+        if response.status_code == 200:
+            return BytesIO(response.content)

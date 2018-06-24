@@ -82,3 +82,15 @@ class B2Connector(object):
         }
 
         return requests.post(upload_url, headers=headers, data=file_contents)
+
+    def download_file(self, file_id):
+        download_by_id_url = self.download_url.split('file/')[0] + '/b2api/v1/b2_download_file_by_id'
+        params = {
+            'fileId': file_id
+        }
+        headers = {
+            'Authorization': self.auth_token
+        }
+
+        return requests.get(download_by_id_url, headers=headers, params=params)
+

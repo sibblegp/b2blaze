@@ -23,11 +23,9 @@ class B2FileList:
         response = self.connector.make_request(path=path, method='post', params=params)
         if response.status_code == 200:
             files_json = response.json()
-            print(files_json)
             files = []
             self._files_by_name = {}
             self._files_by_id = {}
-            #TODO:  Make into files
             for file_json in files_json['files']:
                 new_file = B2File(connector=self.connector, parent_list=self, **file_json)
                 files.append(new_file)
@@ -37,13 +35,14 @@ class B2FileList:
                return files
         else:
             print(response.json())
+            raise ValueError
 
-    def get(self, file_path=None, file_id=None):
-        # self._update_bucket_list()
-        # if bucket_name is not None:
-        #     return self._files_by_name.get(bucket_name, None)
-        # else:
-        #     return self._files_by_id.get(bucket_id, None)
+    def get(self, file_name=None, file_id=None):
+        self._update_files_list()
+        if file_name is not None:
+            return self._files_by_name.get(file_name, None)
+        else:
+            return self._files_by_id.get(file_id, None)
         pass
 
     def upload(self, contents, file_name, mime_content_type=None):
@@ -59,8 +58,8 @@ class B2FileList:
             auth_token = upload_url_request.json().get('authorizationToken', None)
             upload_response = self.connector.upload_file(file_contents=contents, file_name=file_name,
                                                          upload_url=upload_url, auth_token=auth_token)
-            print(upload_response.status_code)
-            print(upload_response.json())
+            new_file = B2File(connector=self.connector, parent_list=self, **upload_response.json())
+            return new_file
         else:
             print(upload_url_request.json())
             raise ValueError

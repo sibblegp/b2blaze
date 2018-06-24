@@ -25,9 +25,14 @@ class TestB2:
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
         bucket.files.upload(contents='Hello World!', file_name='hello.txt')
 
+    def test_download_file(self):
+        bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
+        file = bucket.files.get(file_name='hello.txt')
+        file.download()
+
     def test_get_buckets(self):
         buckets = self.b2.buckets.all
-        #expect(len(buckets)).should.be.greater_than(2)
+        expect(len(buckets)).should.be.greater_than(1)
 
     def test_get_files(self):
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
