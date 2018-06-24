@@ -1,3 +1,5 @@
+from file_list import B2FileList
+
 
 class B2Bucket:
 
@@ -33,4 +35,4 @@ class B2Bucket:
 
     @property
     def files(self):
-        return []
+        return B2FileList(connector=self.connector, bucket=self)

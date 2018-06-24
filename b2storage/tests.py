@@ -20,15 +20,23 @@ class TestB2:
     def test_create_bucket(self):
         self.bucket = self.b2.buckets.create(self.bucket_name)
 
-    def test_delete_bucket(self):
-        self.bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        self.bucket.delete()
-        print(self.bucket.deleted)
-        #TODO: Assert cannot retrieve bucket by ID or name
-
     def test_get_buckets(self):
         buckets = self.b2.buckets.all
         print(buckets)
+
+    def test_get_files(self):
+        bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
+        files = bucket.files.all
+
+    def test_upload_file(self):
+        bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
+        bucket.files.upload(contents='Hello World!', file_name='hello.txt')
+
+    # def test_z_delete_bucket(self):
+    #     self.bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
+    #     self.bucket.delete()
+    #     print(self.bucket.deleted)
+    #     #TODO: Assert cannot retrieve bucket by ID or name
 
     # def test_failure_to_create_bucket(self):
     #     expect(self.b2.create_bucket(

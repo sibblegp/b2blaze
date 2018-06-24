@@ -2,6 +2,8 @@ import requests
 import datetime
 from requests.auth import HTTPBasicAuth
 from b2_exceptions import B2AuthorizationError
+import sys
+from hashlib import sha1
 
 class B2Connector(object):
     auth_url = 'https://api.backblazeb2.com/b2api/v1'
@@ -67,3 +69,16 @@ class B2Connector(object):
                 raise ValueError
         else:
             raise B2AuthorizationError
+
+    def upload_file(self, file_contents, file_name, upload_url, auth_token, mime_content_type=None):
+        file_size = sys.getsizeof(file_contents)
+        file_sha = sha1(file_contents).hexdigest()
+        headers = {
+            'Content-Type': mime_content_type or 'b2/x-auto',
+            'Content-Length': str(file_size),
+            'X-Bz-Content-Sha1': file_sha,
+            'X-Bz-File-Name': file_name,
+            'Authorization': auth_token
+        }
+
+        return requests.post(upload_url, headers=headers, data=file_contents)
