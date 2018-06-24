@@ -47,7 +47,7 @@ class B2Buckets:
             raise B2InvalidBucketConfiguration
         params = {
             'bucketName': bucket_name,
-            'bucketType': 'allPublic',
+            'bucketType': 'allPrivate',
             #TODO: bucketInfo
             #TODO: corsRules
             #TODO: lifeCycleRules
