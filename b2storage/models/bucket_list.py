@@ -18,7 +18,6 @@ class B2Buckets:
         response = self.connector.make_request(path=path, method='post', account_id_required=True)
         if response.status_code == 200:
             response_json = response.json()
-            print(response_json)
             buckets = []
             self._buckets_by_name = {}
             self._buckets_by_id = {}
@@ -31,6 +30,7 @@ class B2Buckets:
                 return buckets
         else:
             print(response.json())
+            raise ValueError
 
     def get(self, bucket_name=None, bucket_id=None):
         self._update_bucket_list()

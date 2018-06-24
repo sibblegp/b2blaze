@@ -18,6 +18,9 @@ class B2Bucket:
 
     def delete(self):
         path = '/b2_delete_bucket'
+        files = self.files.all
+        for file in files:
+            file.delete()
         params = {
             'bucketId': self.bucket_id
         }

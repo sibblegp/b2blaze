@@ -1,5 +1,6 @@
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
 
+from b2_file import B2File
 
 class B2FileList:
 
@@ -21,19 +22,19 @@ class B2FileList:
         }
         response = self.connector.make_request(path=path, method='post', params=params)
         if response.status_code == 200:
-            response_json = response.json()
-            print(response_json)
+            files_json = response.json()
+            print(files_json)
             files = []
             self._files_by_name = {}
             self._files_by_id = {}
             #TODO:  Make into files
-            #for files_json in response_json['buckets']:
-                #new_bucket = B2Bucket(connector=self.connector, parent_list=self, **bucket_json)
-                #buckets.append(new_bucket)
-                #self._files_by_name[bucket_json['bucketName']] = new_bucket
-                #self._files_by_id[bucket_json['bucketId']] = new_bucket
-            #if retrieve:
-            #    return buckets
+            for file_json in files_json['files']:
+                new_file = B2File(connector=self.connector, parent_list=self, **file_json)
+                files.append(new_file)
+                self._files_by_name[file_json['fileName']] = new_file
+                self._files_by_id[file_json['fileId']] = new_file
+            if retrieve:
+               return files
         else:
             print(response.json())
 
