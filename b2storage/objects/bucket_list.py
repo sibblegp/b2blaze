@@ -11,25 +11,29 @@ class B2Buckets:
 
     @property
     def all(self):
+        return self._update_bucket_list(retrieve=True)
+
+    def _update_bucket_list(self, retrieve=False):
         path = '/b2_list_buckets'
         response = self.connector.make_request(path=path, method='post', account_id_required=True)
         if response.status_code == 200:
             response_json = response.json()
             print(response_json)
             buckets = []
+            self._buckets_by_name = {}
+            self._buckets_by_id = {}
             for bucket_json in response_json['buckets']:
-                new_bucket = B2Bucket(connector=self.connector, **bucket_json)
+                new_bucket = B2Bucket(connector=self.connector, parent_list=self, **bucket_json)
                 buckets.append(new_bucket)
                 self._buckets_by_name[bucket_json['bucketName']] = new_bucket
                 self._buckets_by_id[bucket_json['bucketId']] = new_bucket
-            print(self._buckets_by_id)
-            print(self._buckets_by_name)
-            return buckets
+            if retrieve:
+                return buckets
         else:
             print(response.json())
-        return response.json()
 
     def get(self, bucket_name=None, bucket_id=None):
+        self._update_bucket_list()
         if bucket_name is not None:
             return self._buckets_by_name.get(bucket_name, None)
         else:
@@ -51,8 +55,7 @@ class B2Buckets:
         response = self.connector.make_request(path=path, method='post', params=params, account_id_required=True)
         if response.status_code == 200:
             bucket_json = response.json()
-            print(bucket_json)
-            new_bucket = B2Bucket(connector=self.connector, **bucket_json)
+            new_bucket = B2Bucket(connector=self.connector, parent_list=self, **bucket_json)
             self._buckets_by_name[bucket_json['bucketName']] = new_bucket
             self._buckets_by_id[bucket_json['bucketId']] = new_bucket
             return new_bucket

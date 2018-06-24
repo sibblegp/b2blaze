@@ -1,7 +1,7 @@
 
 class B2Bucket:
 
-    def __init__(self, connector, bucketId, bucketName, bucketType, bucketInfo, lifecycleRules, revision, corsRules,
+    def __init__(self, connector, parent_list, bucketId, bucketName, bucketType, bucketInfo, lifecycleRules, revision, corsRules,
                  *args, **kwargs):
         self.bucket_id = bucketId
         self.bucket_name = bucketName
@@ -11,25 +11,23 @@ class B2Bucket:
         self.revision = revision
         self.cors_rules = corsRules
         self.connector = connector
+        self.parent_list = parent_list
         self.deleted = False
 
-    def delete(self, bucket=None, bucket_id=None):
+    def delete(self):
         path = '/b2_delete_bucket'
-        using_bucket = False
-        if bucket is not None:
-            bucket_id = bucket.bucket_id
-            using_bucket = True
-        #TODO:  Check bucket ID proper
         params = {
-            'bucketId': bucket_id
+            'bucketId': self.bucket_id
         }
         response = self.connector.make_request(path=path, method='post', params=params, account_id_required=True)
         if response.status_code == 200:
-            if using_bucket:
-                bucket.deleted = True
+            self.deleted = True
+            del self.parent_list._buckets_by_name[self.bucket_name]
+            del self.parent_list._buckets_by_id[self.bucket_id]
             print(response.json())
         else:
             print(response.json())
+            raise ValueError
             #TODO:  Raise Error
 
     def edit(self):
