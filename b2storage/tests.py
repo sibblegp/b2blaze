@@ -24,6 +24,7 @@ class TestB2:
         self.bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
         self.bucket.delete()
         print(self.bucket.deleted)
+        #TODO: Assert cannot retrieve bucket by ID or name
 
     def test_get_buckets(self):
         buckets = self.b2.buckets.all

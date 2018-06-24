@@ -24,11 +24,13 @@ class B2Bucket:
             self.deleted = True
             del self.parent_list._buckets_by_name[self.bucket_name]
             del self.parent_list._buckets_by_id[self.bucket_id]
-            print(response.json())
         else:
-            print(response.json())
             raise ValueError
             #TODO:  Raise Error
 
     def edit(self):
         pass
+
+    @property
+    def files(self):
+        return []

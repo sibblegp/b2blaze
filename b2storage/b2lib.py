@@ -5,8 +5,7 @@ from b2_exceptions import B2ApplicationKeyNotSet, B2KeyIDNotSet, B2InvalidBucket
 from b2_exceptions import B2BucketCreationError
 from connector import B2Connector
 
-from objects.bucket import B2Bucket
-from objects.bucket_list import B2Buckets
+from models.bucket_list import B2Buckets
 
 class B2(object):
 
