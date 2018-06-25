@@ -64,3 +64,12 @@ class B2File(object):
         response = self.connector.download_file(file_id=self.file_id)
         if response.status_code == 200:
             return BytesIO(response.content)
+
+    @property
+    def url(self):
+        """
+
+        :return: file download url
+        """
+        return self.connector.download_url.split('file/')[0] \
+                             + '/b2api/v1/b2_download_file_by_id?fileId=' + self.file_id
