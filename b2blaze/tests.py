@@ -107,7 +107,7 @@ class TestB2(object):
         :return: None
         """
         self.bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        #self.bucket.delete()
+        self.bucket.delete()
         #TODO: Assert cannot retrieve bucket by ID or name
 
     # def test_failure_to_create_bucket(self):

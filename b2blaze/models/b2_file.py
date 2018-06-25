@@ -2,7 +2,7 @@
 Copyright George Sibble 2018
 """
 from io import BytesIO
-from ..utilities import b2_url_encode
+from ..utilities import b2_url_encode, b2_url_decode
 
 class B2File(object):
     """
@@ -26,6 +26,8 @@ class B2File(object):
         :param kwargs:
         """
         self.file_id = fileId
+        #self.file_name = b2_url_decode(fileName)
+        #TODO:  Find out if this is necessary
         self.file_name = fileName
         self.content_sha1 = contentSha1
         self.content_length = contentLength
