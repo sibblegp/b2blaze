@@ -1,5 +1,6 @@
-# Copyright George Sibble 2018
-
+"""
+Copyright George Sibble 2018
+"""
 import os
 from b2_exceptions import B2ApplicationKeyNotSet, B2KeyIDNotSet, B2InvalidBucketName, B2InvalidBucketConfiguration
 from b2_exceptions import B2BucketCreationError
@@ -8,8 +9,15 @@ from connector import B2Connector
 from models.bucket_list import B2Buckets
 
 class B2(object):
+    """
 
+    """
     def __init__(self, key_id=None, application_key=None):
+        """
+
+        :param key_id:
+        :param application_key:
+        """
         if key_id is None or application_key is None:
             key_id = os.environ.get('B2_KEY_ID', None)
             application_key = os.environ.get('B2_APPLICATION_KEY', None)
@@ -24,5 +32,9 @@ class B2(object):
 
     @property
     def buckets(self):
+        """
+
+        :return:
+        """
         return B2Buckets(connector=self.connector)
 

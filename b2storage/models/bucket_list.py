@@ -1,19 +1,39 @@
+"""
+Copyright George Sibble 2018
+"""
+
+
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
 from bucket import B2Bucket
 
 
-class B2Buckets:
+class B2Buckets(object):
+    """
 
+    """
     def __init__(self, connector):
+        """
+
+        :param connector:
+        """
         self.connector = connector
         self._buckets_by_name = {}
         self._buckets_by_id = {}
 
     @property
     def all(self):
+        """
+
+        :return:
+        """
         return self._update_bucket_list(retrieve=True)
 
     def _update_bucket_list(self, retrieve=False):
+        """
+
+        :param retrieve:
+        :return:
+        """
         path = '/b2_list_buckets'
         response = self.connector.make_request(path=path, method='post', account_id_required=True)
         if response.status_code == 200:
@@ -33,6 +53,12 @@ class B2Buckets:
             raise ValueError
 
     def get(self, bucket_name=None, bucket_id=None):
+        """
+
+        :param bucket_name:
+        :param bucket_id:
+        :return:
+        """
         self._update_bucket_list()
         if bucket_name is not None:
             return self._buckets_by_name.get(bucket_name, None)
@@ -40,6 +66,12 @@ class B2Buckets:
             return self._buckets_by_id.get(bucket_id, None)
 
     def create(self, bucket_name, configuration=None):
+        """
+
+        :param bucket_name:
+        :param configuration:
+        :return:
+        """
         path = '/b2_create_bucket'
         if type(bucket_name) != str or type(bucket_name) != bytes:
             raise B2InvalidBucketName

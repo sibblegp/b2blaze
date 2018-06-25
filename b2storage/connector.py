@@ -1,3 +1,6 @@
+"""
+Copyright George Sibble 2018
+"""
 import requests
 import datetime
 from requests.auth import HTTPBasicAuth
@@ -6,9 +9,17 @@ import sys
 from hashlib import sha1
 
 class B2Connector(object):
+    """
+
+    """
     auth_url = 'https://api.backblazeb2.com/b2api/v1'
 
     def __init__(self, key_id, application_key):
+        """
+
+        :param key_id:
+        :param application_key:
+        """
         self.key_id = key_id
         self.application_key = application_key
         self.account_id = None
@@ -23,6 +34,10 @@ class B2Connector(object):
 
     @property
     def authorized(self):
+        """
+
+        :return:
+        """
         if self.auth_token is None:
             return False
         else:
@@ -34,6 +49,10 @@ class B2Connector(object):
 
 
     def _authorize(self):
+        """
+
+        :return:
+        """
         path = self.auth_url + '/b2_authorize_account'
         result = requests.get(path, auth=HTTPBasicAuth(self.key_id, self.application_key))
         if result.status_code == 200:
@@ -52,6 +71,15 @@ class B2Connector(object):
 
 
     def make_request(self, path, method='get', headers={}, params={}, account_id_required=False):
+        """
+
+        :param path:
+        :param method:
+        :param headers:
+        :param params:
+        :param account_id_required:
+        :return:
+        """
         if self.authorized:
             url = self.api_url + path
             if method == 'get':
@@ -71,6 +99,15 @@ class B2Connector(object):
             raise B2AuthorizationError
 
     def upload_file(self, file_contents, file_name, upload_url, auth_token, mime_content_type=None):
+        """
+
+        :param file_contents:
+        :param file_name:
+        :param upload_url:
+        :param auth_token:
+        :param mime_content_type:
+        :return:
+        """
         file_size = sys.getsizeof(file_contents)
         file_sha = sha1(file_contents).hexdigest()
         headers = {
@@ -84,6 +121,11 @@ class B2Connector(object):
         return requests.post(upload_url, headers=headers, data=file_contents)
 
     def download_file(self, file_id):
+        """
+
+        :param file_id:
+        :return:
+        """
         download_by_id_url = self.download_url.split('file/')[0] + '/b2api/v1/b2_download_file_by_id'
         params = {
             'fileId': file_id

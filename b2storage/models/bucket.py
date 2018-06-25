@@ -1,10 +1,29 @@
+"""
+Copyright George Sibble 2018
+"""
 from file_list import B2FileList
 
 
-class B2Bucket:
+class B2Bucket(object):
+    """
 
-    def __init__(self, connector, parent_list, bucketId, bucketName, bucketType, bucketInfo, lifecycleRules, revision, corsRules,
-                 *args, **kwargs):
+    """
+    def __init__(self, connector, parent_list, bucketId, bucketName, bucketType, bucketInfo, lifecycleRules, revision,
+                 corsRules, *args, **kwargs):
+        """
+
+        :param connector:
+        :param parent_list:
+        :param bucketId:
+        :param bucketName:
+        :param bucketType:
+        :param bucketInfo:
+        :param lifecycleRules:
+        :param revision:
+        :param corsRules:
+        :param args:
+        :param kwargs:
+        """
         self.bucket_id = bucketId
         self.bucket_name = bucketName
         self.bucket_type = bucketType
@@ -17,6 +36,10 @@ class B2Bucket:
         self.deleted = False
 
     def delete(self):
+        """
+
+        :return:
+        """
         path = '/b2_delete_bucket'
         files = self.files.all
         for file in files:
@@ -38,4 +61,8 @@ class B2Bucket:
 
     @property
     def files(self):
+        """
+
+        :return:
+        """
         return B2FileList(connector=self.connector, bucket=self)

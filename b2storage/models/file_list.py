@@ -1,10 +1,21 @@
+"""
+Copyright George Sibble 2018
+"""
+
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
 
 from b2_file import B2File
 
-class B2FileList:
+class B2FileList(object):
+    """
 
+    """
     def __init__(self, connector, bucket):
+        """
+
+        :param connector:
+        :param bucket:
+        """
         self.connector = connector
         self.bucket = bucket
         self._files_by_name = {}
@@ -12,9 +23,18 @@ class B2FileList:
 
     @property
     def all(self):
+        """
+
+        :return:
+        """
         return self._update_files_list(retrieve=True)
 
     def _update_files_list(self, retrieve=False):
+        """
+
+        :param retrieve:
+        :return:
+        """
         path = '/b2_list_file_names'
         params = {
             'bucketId': self.bucket.bucket_id,
@@ -38,6 +58,12 @@ class B2FileList:
             raise ValueError
 
     def get(self, file_name=None, file_id=None):
+        """
+
+        :param file_name:
+        :param file_id:
+        :return:
+        """
         self._update_files_list()
         if file_name is not None:
             return self._files_by_name.get(file_name, None)
@@ -46,6 +72,13 @@ class B2FileList:
         pass
 
     def upload(self, contents, file_name, mime_content_type=None):
+        """
+
+        :param contents:
+        :param file_name:
+        :param mime_content_type:
+        :return:
+        """
         get_upload_url_path = '/b2_get_upload_url'
         params = {
             'bucketId': self.bucket.bucket_id

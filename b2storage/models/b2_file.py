@@ -1,9 +1,29 @@
+"""
+Copyright George Sibble 2018
+"""
 from io import BytesIO
 
-class B2File:
+class B2File(object):
+    """
 
+    """
     def __init__(self, connector, parent_list, fileId, fileName, contentSha1, contentLength, contentType,
                  fileInfo, action, uploadTimestamp, *args, **kwargs):
+        """
+
+        :param connector:
+        :param parent_list:
+        :param fileId:
+        :param fileName:
+        :param contentSha1:
+        :param contentLength:
+        :param contentType:
+        :param fileInfo:
+        :param action:
+        :param uploadTimestamp:
+        :param args:
+        :param kwargs:
+        """
         self.file_id = fileId
         self.file_name = fileName
         self.content_sha1 = contentSha1
@@ -17,6 +37,10 @@ class B2File:
         self.deleted = False
 
     def delete(self):
+        """
+
+        :return:
+        """
         path = '/b2_delete_file_version'
         params = {
             'fileId': self.file_id,
@@ -33,6 +57,10 @@ class B2File:
             #TODO:  Raise Error
 
     def download(self):
+        """
+
+        :return:
+        """
         response = self.connector.download_file(file_id=self.file_id)
         if response.status_code == 200:
             return BytesIO(response.content)
