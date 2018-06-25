@@ -2,6 +2,7 @@
 Copyright George Sibble 2018
 """
 from io import BytesIO
+from ..utilities import b2_url_encode
 
 class B2File(object):
     """
@@ -44,7 +45,7 @@ class B2File(object):
         path = '/b2_delete_file_version'
         params = {
             'fileId': self.file_id,
-            'fileName': self.file_name
+            'fileName': b2_url_encode(self.file_name)
         }
         response = self.connector.make_request(path=path, method='post', params=params)
         if response.status_code == 200:

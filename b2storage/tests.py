@@ -36,13 +36,30 @@ class TestB2(object):
         self.bucket = self.b2.buckets.create(self.bucket_name)
 
 
-    def test_create_file(self):
+    def test_create_file_and_retrieve_by_id(self):
         """
 
         :return:
         """
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        bucket.files.upload(contents='Hello World!', file_name='hello.txt')
+        file = bucket.files.upload(contents='Hello World!', file_name='hello.txt')
+        file2 = bucket.files.get(file_id=file.file_id)
+
+    def test_create_z_binary_file(self):
+        """
+
+        :return:
+        """
+        #from time import sleep
+        bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
+        binary_file = open('test_pic.jpg')
+        uploaded_file = bucket.files.upload(contents=binary_file.read(), file_name='test_pic.jpg')
+        binary_file.close()
+        #sleep(3)
+        #downloaded_file = uploaded_file.download()
+        #save_file = open('save_pic.jpg', 'wb')
+        #save_file.write(downloaded_file.read())
+        #save_file.close()
 
     def test_download_file(self):
         """
@@ -52,6 +69,21 @@ class TestB2(object):
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
         file = bucket.files.get(file_name='hello.txt')
         file.download()
+
+    def test_download_url(self):
+        """
+
+        :return:
+        """
+        import requests
+        bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
+        file = bucket.files.get(file_name='hello.txt')
+        url = file.url
+        print(url)
+        downloaded_file = requests.get(url)
+        if downloaded_file.status_code != 200:
+            print(downloaded_file.json())
+            raise ValueError
 
     def test_get_buckets(self):
         """
@@ -77,7 +109,6 @@ class TestB2(object):
         """
         self.bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
         self.bucket.delete()
-        print(self.bucket.deleted)
         #TODO: Assert cannot retrieve bucket by ID or name
 
     # def test_failure_to_create_bucket(self):

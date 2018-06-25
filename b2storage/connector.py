@@ -7,6 +7,7 @@ from requests.auth import HTTPBasicAuth
 from b2_exceptions import B2AuthorizationError
 import sys
 from hashlib import sha1
+from .utilities import b2_url_encode
 
 class B2Connector(object):
     """
@@ -114,7 +115,7 @@ class B2Connector(object):
             'Content-Type': mime_content_type or 'b2/x-auto',
             'Content-Length': str(file_size),
             'X-Bz-Content-Sha1': file_sha,
-            'X-Bz-File-Name': file_name,
+            'X-Bz-File-Name': b2_url_encode(file_name),
             'Authorization': auth_token
         }
 

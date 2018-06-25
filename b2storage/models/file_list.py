@@ -5,6 +5,7 @@ Copyright George Sibble 2018
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
 
 from b2_file import B2File
+from ..utilities import b2_url_encode
 
 class B2FileList(object):
     """
@@ -64,12 +65,42 @@ class B2FileList(object):
         :param file_id:
         :return:
         """
-        self._update_files_list()
         if file_name is not None:
-            return self._files_by_name.get(file_name, None)
+            path = '/b2_list_file_names'
+            params = {
+                'prefix': b2_url_encode(file_name),
+                'bucketId': self.bucket.bucket_id
+            }
+
+            response = self.connector.make_request(path, method='post', params=params)
+            if response.status_code == 200:
+                files_json = response.json()
+                return B2File(connector=self.connector, parent_list=self, **files_json['files'][0])
+            else:
+                print(response.json())
+                raise ValueError
+        elif file_id is not None:
+            path = '/b2_get_file_info'
+            params = {
+                'fileId': file_id
+            }
+            response = self.connector.make_request(path, method='post', params=params)
+            if response.status_code == 200:
+                file_json = response.json()
+                return B2File(connector=self.connector, parent_list=self, **file_json)
+            else:
+                print(response.json())
+                raise ValueError
         else:
-            return self._files_by_id.get(file_id, None)
-        pass
+            raise ValueError
+
+        # self._update_files_list()
+        # if file_name is not None:
+        #     return self._files_by_name.get(file_name, None)
+        # else:
+        #     return self._files_by_id.get(file_id, None)
+        # pass
+
 
     def upload(self, contents, file_name, mime_content_type=None):
         """
