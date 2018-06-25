@@ -2,11 +2,18 @@
 
 from setuptools import setup
 
-VERSION = '0.1.1'
+VERSION = '0.1.3'
+
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md')) as f:
+    long_description = f.read()
 
 setup(name='b2blaze',
       version=VERSION,
       description='b2blaze library for connecting to Backblaze B2',
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       packages=['b2blaze'],
       author='George Sibble',
       author_email='gsibble@gmail.com',

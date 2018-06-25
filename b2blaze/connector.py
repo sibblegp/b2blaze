@@ -7,7 +7,7 @@ from requests.auth import HTTPBasicAuth
 from b2_exceptions import B2AuthorizationError, B2RequestError, B2InvalidRequestType
 import sys
 from hashlib import sha1
-from .utilities import b2_url_encode, decode_error
+from utilities import b2_url_encode, decode_error
 
 class B2Connector(object):
     """
