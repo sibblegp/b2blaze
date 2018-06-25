@@ -64,6 +64,9 @@ class B2File(object):
         response = self.connector.download_file(file_id=self.file_id)
         if response.status_code == 200:
             return BytesIO(response.content)
+        else:
+            pass
+            #TODO:  Raise exception
 
     @property
     def url(self):
