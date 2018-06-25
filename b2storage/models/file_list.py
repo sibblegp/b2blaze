@@ -116,6 +116,8 @@ class B2FileList(object):
         :param mime_content_type:
         :return:
         """
+        if file_name[0] == '/':
+            file_name = file_name[1:]
         get_upload_url_path = '/b2_get_upload_url'
         params = {
             'bucketId': self.bucket.bucket_id
@@ -128,8 +130,12 @@ class B2FileList(object):
             auth_token = upload_url_request.json().get('authorizationToken', None)
             upload_response = self.connector.upload_file(file_contents=contents, file_name=file_name,
                                                          upload_url=upload_url, auth_token=auth_token)
-            new_file = B2File(connector=self.connector, parent_list=self, **upload_response.json())
-            return new_file
+            if upload_response.status_code == 200:
+                new_file = B2File(connector=self.connector, parent_list=self, **upload_response.json())
+                return new_file
+            else:
+                print(upload_response.json())
+                raise ValueError
         else:
             print(upload_url_request.json())
             raise ValueError

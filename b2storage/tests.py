@@ -42,7 +42,7 @@ class TestB2(object):
         :return: None
         """
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        file = bucket.files.upload(contents='Hello World!', file_name='hello.txt')
+        file = bucket.files.upload(contents='Hello World!', file_name='test/hello.txt')
         file2 = bucket.files.get(file_id=file.file_id)
 
     def test_create_z_binary_file(self):
@@ -67,7 +67,7 @@ class TestB2(object):
         :return: None
         """
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        file = bucket.files.get(file_name='hello.txt')
+        file = bucket.files.get(file_name='test/hello.txt')
         file.download()
 
     def test_download_url(self):
@@ -77,7 +77,7 @@ class TestB2(object):
         """
         import requests
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        file = bucket.files.get(file_name='hello.txt')
+        file = bucket.files.get(file_name='test/hello.txt')
         url = file.url
         downloaded_file = requests.get(url)
         if downloaded_file.status_code != 200:
@@ -107,7 +107,7 @@ class TestB2(object):
         :return: None
         """
         self.bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        self.bucket.delete()
+        #self.bucket.delete()
         #TODO: Assert cannot retrieve bucket by ID or name
 
     # def test_failure_to_create_bucket(self):
