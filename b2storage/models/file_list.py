@@ -37,26 +37,32 @@ class B2FileList(object):
         :return:
         """
         path = '/b2_list_file_names'
+        files = []
+        new_files_to_retrieve = True
         params = {
             'bucketId': self.bucket.bucket_id,
             'maxFileCount': 10000
         }
-        response = self.connector.make_request(path=path, method='post', params=params)
-        if response.status_code == 200:
-            files_json = response.json()
-            files = []
-            self._files_by_name = {}
-            self._files_by_id = {}
-            for file_json in files_json['files']:
-                new_file = B2File(connector=self.connector, parent_list=self, **file_json)
-                files.append(new_file)
-                self._files_by_name[file_json['fileName']] = new_file
-                self._files_by_id[file_json['fileId']] = new_file
-            if retrieve:
-               return files
-        else:
-            print(response.json())
-            raise ValueError
+        while new_files_to_retrieve:
+            response = self.connector.make_request(path=path, method='post', params=params)
+            if response.status_code == 200:
+                files_json = response.json()
+                self._files_by_name = {}
+                self._files_by_id = {}
+                for file_json in files_json['files']:
+                    new_file = B2File(connector=self.connector, parent_list=self, **file_json)
+                    files.append(new_file)
+                    self._files_by_name[file_json['fileName']] = new_file
+                    self._files_by_id[file_json['fileId']] = new_file
+                if files_json['nextFileName'] is None:
+                    new_files_to_retrieve = False
+                else:
+                    params['startFileName'] = files_json['nextFileName']
+            else:
+                print(response.json())
+                raise ValueError
+        if retrieve:
+            return files
 
     def get(self, file_name=None, file_id=None):
         """

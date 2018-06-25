@@ -11,6 +11,9 @@ class B2Buckets(object):
     """
 
     """
+    public = 'allPublic'
+    private = 'allPrivate'
+
     def __init__(self, connector):
         """
 
@@ -65,7 +68,7 @@ class B2Buckets(object):
         else:
             return self._buckets_by_id.get(bucket_id, None)
 
-    def create(self, bucket_name, configuration=None):
+    def create(self, bucket_name, security, configuration=None):
         """
 
         :param bucket_name:
@@ -79,7 +82,7 @@ class B2Buckets(object):
             raise B2InvalidBucketConfiguration
         params = {
             'bucketName': bucket_name,
-            'bucketType': 'allPublic',
+            'bucketType': security,
             #TODO: bucketInfo
             #TODO: corsRules
             #TODO: lifeCycleRules

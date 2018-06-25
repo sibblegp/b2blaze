@@ -76,4 +76,4 @@ class B2File(object):
         :return: file download url
         """
         return self.connector.download_url.split('file/')[0] \
-                             + '/b2api/v1/b2_download_file_by_id?fileId=' + self.file_id
+                             + 'b2api/v1/b2_download_file_by_id?fileId=' + self.file_id
