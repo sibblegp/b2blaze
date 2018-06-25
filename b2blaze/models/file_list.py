@@ -6,7 +6,7 @@ from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B
 
 from b2_file import B2File
 from ..utilities import b2_url_encode, decode_error
-from ..b2_exceptions import B2RequestError
+from ..b2_exceptions import B2RequestError, B2FileNotFound
 
 class B2FileList(object):
     """
@@ -80,8 +80,11 @@ class B2FileList(object):
 
             response = self.connector.make_request(path, method='post', params=params)
             if response.status_code == 200:
-                files_json = response.json()
-                return B2File(connector=self.connector, parent_list=self, **files_json['files'][0])
+                file_json = response.json()
+                if len(file_json['files']) > 0:
+                    return B2File(connector=self.connector, parent_list=self, **file_json['files'][0])
+                else:
+                    raise B2FileNotFound('fileName - ' + file_name)
             else:
                 print(response.json())
                 raise B2RequestError(decode_error(response))

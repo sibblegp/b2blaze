@@ -6,6 +6,8 @@ import sure
 from sure import expect
 import random
 import string
+import pytest
+from b2_exceptions import B2RequestError, B2FileNotFound
 
 class TestB2(object):
     """
@@ -99,6 +101,16 @@ class TestB2(object):
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
         files = bucket.files.all
 
+    def test_get_file_doesnt_exist(self):
+        """
+
+        :return:
+        """
+        bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
+        with pytest.raises(B2FileNotFound):
+            file = bucket.files.get(file_name='nope.txt')
+        with pytest.raises(B2RequestError):
+            file2 = bucket.files.get(file_id='abcd')
 
     def test_z_delete_bucket(self):
         """

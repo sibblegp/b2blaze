@@ -46,3 +46,8 @@ class B2InvalidRequestType(Exception):
     """
 
     """
+
+class B2FileNotFound(Exception):
+    """
+
+    """
