@@ -3,7 +3,8 @@ Copyright George Sibble 2018
 """
 
 
-from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
+from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError, B2RequestError
+from ..utilities import decode_error
 from bucket import B2Bucket
 
 
@@ -52,8 +53,7 @@ class B2Buckets(object):
             if retrieve:
                 return buckets
         else:
-            print(response.json())
-            raise ValueError
+            raise B2RequestError(decode_error(response))
 
     def get(self, bucket_name=None, bucket_id=None):
         """
@@ -96,4 +96,4 @@ class B2Buckets(object):
             return new_bucket
         else:
             print(response.status_code)
-            raise B2BucketCreationError(str(response.json()))
+            raise B2RequestError(decode_error(response))

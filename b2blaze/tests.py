@@ -35,7 +35,6 @@ class TestB2(object):
         """
         self.bucket = self.b2.buckets.create(self.bucket_name, security=self.b2.buckets.public)
 
-
     def test_create_file_and_retrieve_by_id(self):
         """
 

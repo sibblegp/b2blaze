@@ -4,10 +4,10 @@ Copyright George Sibble 2018
 import requests
 import datetime
 from requests.auth import HTTPBasicAuth
-from b2_exceptions import B2AuthorizationError
+from b2_exceptions import B2AuthorizationError, B2RequestError, B2InvalidRequestType
 import sys
 from hashlib import sha1
-from .utilities import b2_url_encode
+from .utilities import b2_url_encode, decode_error
 
 class B2Connector(object):
     """
@@ -68,7 +68,7 @@ class B2Connector(object):
                 'Authorization': self.auth_token
             })
         else:
-            raise B2AuthorizationError
+            raise B2AuthorizationError(decode_error(result))
 
 
     def make_request(self, path, method='get', headers={}, params={}, account_id_required=False):
@@ -95,9 +95,9 @@ class B2Connector(object):
                 })
                 return self.api_session.post(url, json=params, headers=headers)
             else:
-                raise ValueError
+                raise B2InvalidRequestType('Request type must be get or post')
         else:
-            raise B2AuthorizationError
+            raise B2AuthorizationError('Unknown Error')
 
     def upload_file(self, file_contents, file_name, upload_url, auth_token, mime_content_type=None):
         """

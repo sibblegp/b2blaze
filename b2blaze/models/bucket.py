@@ -2,6 +2,8 @@
 Copyright George Sibble 2018
 """
 from file_list import B2FileList
+from ..b2_exceptions import B2RequestError
+from ..utilities import decode_error
 
 
 class B2Bucket(object):
@@ -53,10 +55,10 @@ class B2Bucket(object):
             del self.parent_list._buckets_by_name[self.bucket_name]
             del self.parent_list._buckets_by_id[self.bucket_id]
         else:
-            raise ValueError
-            #TODO:  Raise Error
+            raise B2RequestError(decode_error(response))
 
     def edit(self):
+        #TODO:  Edit details
         pass
 
     @property

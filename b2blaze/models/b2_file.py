@@ -2,7 +2,8 @@
 Copyright George Sibble 2018
 """
 from io import BytesIO
-from ..utilities import b2_url_encode, b2_url_decode
+from ..utilities import b2_url_encode, b2_url_decode, decode_error
+from ..b2_exceptions import B2RequestError
 
 class B2File(object):
     """
@@ -56,7 +57,7 @@ class B2File(object):
             del self.parent_list._files_by_id[self.file_id]
         else:
             print(response.json())
-            raise ValueError
+            raise B2RequestError(decode_error(response))
             #TODO:  Raise Error
 
     def download(self):
@@ -68,8 +69,7 @@ class B2File(object):
         if response.status_code == 200:
             return BytesIO(response.content)
         else:
-            pass
-            #TODO:  Raise exception
+            raise B2RequestError(decode_error(response))
 
     @property
     def url(self):

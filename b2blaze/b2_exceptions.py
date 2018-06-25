@@ -36,3 +36,13 @@ class B2BucketCreationError(Exception):
 
     """
     pass
+
+class B2RequestError(Exception):
+    """
+
+    """
+
+class B2InvalidRequestType(Exception):
+    """
+
+    """

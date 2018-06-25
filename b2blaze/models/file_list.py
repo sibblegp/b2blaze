@@ -5,7 +5,8 @@ Copyright George Sibble 2018
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
 
 from b2_file import B2File
-from ..utilities import b2_url_encode
+from ..utilities import b2_url_encode, decode_error
+from ..b2_exceptions import B2RequestError
 
 class B2FileList(object):
     """
@@ -59,8 +60,7 @@ class B2FileList(object):
                 else:
                     params['startFileName'] = files_json['nextFileName']
             else:
-                print(response.json())
-                raise ValueError
+                raise B2RequestError(decode_error(response))
         if retrieve:
             return files
 
@@ -84,7 +84,7 @@ class B2FileList(object):
                 return B2File(connector=self.connector, parent_list=self, **files_json['files'][0])
             else:
                 print(response.json())
-                raise ValueError
+                raise B2RequestError(decode_error(response))
         elif file_id is not None:
             path = '/b2_get_file_info'
             params = {
@@ -96,9 +96,9 @@ class B2FileList(object):
                 return B2File(connector=self.connector, parent_list=self, **file_json)
             else:
                 print(response.json())
-                raise ValueError
+                raise B2RequestError(decode_error(response))
         else:
-            raise ValueError
+            raise ValueError('file_name or file_id must be passed')
 
         # self._update_files_list()
         # if file_name is not None:
@@ -123,8 +123,6 @@ class B2FileList(object):
             'bucketId': self.bucket.bucket_id
         }
         upload_url_request = self.connector.make_request(path=get_upload_url_path, method='post', params=params)
-        upload_url = None
-        auth_token = None
         if upload_url_request.status_code == 200:
             upload_url = upload_url_request.json().get('uploadUrl', None)
             auth_token = upload_url_request.json().get('authorizationToken', None)
@@ -134,8 +132,6 @@ class B2FileList(object):
                 new_file = B2File(connector=self.connector, parent_list=self, **upload_response.json())
                 return new_file
             else:
-                print(upload_response.json())
-                raise ValueError
+                raise B2RequestError(decode_error(upload_response))
         else:
-            print(upload_url_request.json())
-            raise ValueError
+            raise B2RequestError(decode_error(upload_url_request))
