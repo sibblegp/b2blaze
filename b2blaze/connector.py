@@ -4,10 +4,10 @@ Copyright George Sibble 2018
 import requests
 import datetime
 from requests.auth import HTTPBasicAuth
-from b2_exceptions import B2AuthorizationError, B2RequestError, B2InvalidRequestType
+from b2blaze.b2_exceptions import B2AuthorizationError, B2RequestError, B2InvalidRequestType
 import sys
 from hashlib import sha1
-from utilities import b2_url_encode, decode_error
+from b2blaze.utilities import b2_url_encode, decode_error
 
 class B2Connector(object):
     """
@@ -43,7 +43,6 @@ class B2Connector(object):
             return False
         else:
             if (datetime.datetime.utcnow() - self.authorized_at) > datetime.timedelta(hours=23):
-                print('Reauthorizing')
                 self._authorize()
             else:
                 return True
@@ -110,7 +109,13 @@ class B2Connector(object):
         :return:
         """
         file_size = sys.getsizeof(file_contents)
-        file_sha = sha1(file_contents).hexdigest()
+        if isinstance(file_contents, str) == True:
+            try:
+                file_sha = sha1(file_contents.encode('utf-8')).hexdigest()
+            except UnicodeDecodeError:
+                file_sha = sha1(file_contents).hexdigest()
+        else:
+            file_sha = sha1(file_contents).hexdigest()
         headers = {
             'Content-Type': mime_content_type or 'b2/x-auto',
             'Content-Length': str(file_size),

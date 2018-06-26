@@ -1,7 +1,7 @@
 """
 Copyright George Sibble 2018
 """
-from file_list import B2FileList
+from .file_list import B2FileList
 from ..b2_exceptions import B2RequestError
 from ..utilities import decode_error
 

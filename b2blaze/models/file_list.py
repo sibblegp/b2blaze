@@ -4,7 +4,7 @@ Copyright George Sibble 2018
 
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
 
-from b2_file import B2File
+from .b2_file import B2File
 from ..utilities import b2_url_encode, decode_error
 from ..b2_exceptions import B2RequestError, B2FileNotFound
 
@@ -86,7 +86,6 @@ class B2FileList(object):
                 else:
                     raise B2FileNotFound('fileName - ' + file_name)
             else:
-                print(response.json())
                 raise B2RequestError(decode_error(response))
         elif file_id is not None:
             path = '/b2_get_file_info'
@@ -98,7 +97,6 @@ class B2FileList(object):
                 file_json = response.json()
                 return B2File(connector=self.connector, parent_list=self, **file_json)
             else:
-                print(response.json())
                 raise B2RequestError(decode_error(response))
         else:
             raise ValueError('file_name or file_id must be passed')

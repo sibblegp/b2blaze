@@ -1,1 +1,1 @@
-from b2lib import B2
+from b2blaze.b2lib import B2

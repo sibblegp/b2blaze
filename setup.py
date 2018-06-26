@@ -17,7 +17,7 @@ setup(name='b2blaze',
       packages=['b2blaze'],
       author='George Sibble',
       author_email='gsibble@gmail.com',
-      python_requires='==2.7',
+      python_requires='>=2.7',
       url='https://github.com/sibblegp/b2blaze',
       install_requires=[
             'requests==2.19.1'
@@ -25,6 +25,7 @@ setup(name='b2blaze',
       keywords='backblaze b2 cloud storage',
       classifiers=[
             'Programming Language :: Python :: 2.7',
+            'Programming Language :: Python :: 3.6',
             'Intended Audience :: Developers',
             'Topic :: Software Development :: Libraries',
       ],

@@ -1,13 +1,13 @@
 """
 Copyright George Sibble 2018
 """
-import b2lib
+import b2blaze.b2lib
 import sure
 from sure import expect
 import random
 import string
 import pytest
-from b2_exceptions import B2RequestError, B2FileNotFound
+from b2blaze.b2_exceptions import B2RequestError, B2FileNotFound
 
 class TestB2(object):
     """
@@ -19,8 +19,9 @@ class TestB2(object):
 
         :return: None
         """
-        cls.b2 = b2lib.B2()
+        cls.b2 = b2blaze.b2lib.B2()
         cls.bucket_name = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase) for _ in range(7))
+        cls.bucket_name = 'kkdii3kdi3'
         print(cls.bucket_name)
 
     def test_create_b2_instance(self):
@@ -28,7 +29,7 @@ class TestB2(object):
 
         :return: None
         """
-        b2 = b2lib.B2()
+        b2 = b2blaze.b2lib.B2()
 
     def test_create_bucket(self):
         """
@@ -53,7 +54,7 @@ class TestB2(object):
         """
         #from time import sleep
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        binary_file = open('test_pic.jpg')
+        binary_file = open('test_pic.jpg', 'rb')
         uploaded_file = bucket.files.upload(contents=binary_file.read(), file_name='test_pic.jpg')
         binary_file.close()
         #sleep(3)

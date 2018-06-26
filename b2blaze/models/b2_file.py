@@ -56,7 +56,6 @@ class B2File(object):
             del self.parent_list._files_by_name[self.file_name]
             del self.parent_list._files_by_id[self.file_id]
         else:
-            print(response.json())
             raise B2RequestError(decode_error(response))
             #TODO:  Raise Error
 

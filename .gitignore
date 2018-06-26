@@ -104,3 +104,4 @@ venv.bak/
 .mypy_cache/
 /.idea
 /env_b2
+/env_py3_b2

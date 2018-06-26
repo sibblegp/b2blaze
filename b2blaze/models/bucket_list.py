@@ -1,11 +1,11 @@
 """
 Copyright George Sibble 2018
 """
-
+import six
 
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError, B2RequestError
 from ..utilities import decode_error
-from bucket import B2Bucket
+from .bucket import B2Bucket
 
 
 class B2Buckets(object):
@@ -76,7 +76,7 @@ class B2Buckets(object):
         :return:
         """
         path = '/b2_create_bucket'
-        if type(bucket_name) != str or type(bucket_name) != bytes:
+        if type(bucket_name) != str and type(bucket_name) != bytes:
             raise B2InvalidBucketName
         if type(configuration) != dict and configuration is not None:
             raise B2InvalidBucketConfiguration
@@ -95,5 +95,4 @@ class B2Buckets(object):
             self._buckets_by_id[bucket_json['bucketId']] = new_bucket
             return new_bucket
         else:
-            print(response.status_code)
             raise B2RequestError(decode_error(response))

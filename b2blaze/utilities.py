@@ -11,12 +11,22 @@ Additional code copyright George Sibble 2018
 """
 
 import urllib
+try:
+    import urllib.parse
+except ImportError:
+    pass
 
 def b2_url_encode(s):
-    return urllib.quote(s.encode('utf-8'))
+    try:
+        return urllib.quote(s.encode('utf-8'))
+    except Exception:
+        return urllib.parse.quote(s.encode('utf-8'))
 
 def b2_url_decode(s):
-    return urllib.unquote_plus(str(s)).decode('utf-8')
+    try:
+        return urllib.unquote_plus(str(s)).decode('utf-8')
+    except Exception:
+        return urllib.parse.unquote_plus(str(s)).decode('utf-8')
 
 def decode_error(response):
     try:
