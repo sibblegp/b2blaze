@@ -1,7 +1,6 @@
 """
 Copyright George Sibble 2018
 """
-import six
 
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError, B2RequestError
 from ..utilities import decode_error
