@@ -23,7 +23,6 @@ class B2FileList(object):
         self._files_by_name = {}
         self._files_by_id = {}
 
-    @property
     def all(self):
         """
 

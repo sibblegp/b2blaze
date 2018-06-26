@@ -43,7 +43,7 @@ class B2Bucket(object):
         :return:
         """
         path = '/b2_delete_bucket'
-        files = self.files.all
+        files = self.files.all()
         for file in files:
             file.delete()
         params = {

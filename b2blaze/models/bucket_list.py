@@ -24,7 +24,6 @@ class B2Buckets(object):
         self._buckets_by_name = {}
         self._buckets_by_id = {}
 
-    @property
     def all(self):
         """
 

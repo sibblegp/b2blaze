@@ -21,7 +21,6 @@ class TestB2(object):
         """
         cls.b2 = b2blaze.b2lib.B2()
         cls.bucket_name = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase) for _ in range(7))
-        cls.bucket_name = 'kkdii3kdi3'
         print(cls.bucket_name)
 
     def test_create_b2_instance(self):
@@ -91,7 +90,7 @@ class TestB2(object):
 
         :return: None
         """
-        buckets = self.b2.buckets.all
+        buckets = self.b2.buckets.all()
         expect(len(buckets)).should.be.greater_than(1)
 
     def test_get_files(self):
@@ -100,7 +99,7 @@ class TestB2(object):
         :return: None
         """
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        files = bucket.files.all
+        files = bucket.files.all()
 
     def test_get_file_doesnt_exist(self):
         """

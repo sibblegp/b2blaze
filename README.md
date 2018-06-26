@@ -26,7 +26,7 @@ b2blaze is built around OOP principals and as such all buckets and files are obj
 from b2blaze import B2
 b2 = B2()
 bucket = b2.buckets.get('test_bucket')
-files = bucket.files.all
+files = bucket.files.all()
 ```
 
 Files will be a list of B2File objects with all of their properties which can then be downloaded by running:
@@ -67,13 +67,13 @@ deleted
 #### List All Buckets
 
 ```angular2html
-buckets = b2.buckets.all
+buckets = b2.buckets.all()
 ```
 
 #### Create a Bucket
 
 ```angular2html
-bucket = b2.buckets.create('test_bucket', security=self.b2.buckets.public)
+bucket = b2.buckets.create('test_bucket', security=b2.buckets.public)
 ```
 
 Buckets can either be public or private. This does not change the functionality of the library other than that you will need to manually authorize when using file URLs (see below).
@@ -114,7 +114,7 @@ deleted
 #### List All Files in a Bucket
 
 ```angular2html
-bucket.files.all
+bucket.files.all()
 ```
 
 NOTE: There may be tens of thousands of files (or more) in a bucket. This operation will get information and create objects for all of them. It may take quite some time and be computationally expensive to run.
