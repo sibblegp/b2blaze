@@ -98,7 +98,7 @@ class B2Connector(object):
         else:
             raise B2AuthorizationError('Unknown Error')
 
-    def upload_file(self, file_contents, file_name, upload_url, auth_token, mime_content_type=None):
+    def upload_file(self, file_contents, file_name, upload_url, auth_token, direct=False, mime_content_type=None):
         """
 
         :param file_contents:
@@ -108,17 +108,27 @@ class B2Connector(object):
         :param mime_content_type:
         :return:
         """
-        file_size = sys.getsizeof(file_contents)
-        if isinstance(file_contents, str) == True:
-            try:
-                file_sha = sha1(file_contents.encode('utf-8')).hexdigest()
-            except UnicodeDecodeError:
-                file_sha = sha1(file_contents).hexdigest()
+        buf_size = 65536
+        if hasattr(file_contents, 'read'):  # If it has `read`, then it's a file-like object that we can stream
+            sha = sha1()
+            buf = file_contents.read(buf_size)
+            file_size = len(buf)
+            while len(buf) > 0:
+                sha.update(buf)
+                buf = file_contents.read(buf_size)
+            file_sha = sha.hexdigest()
+            file_contents.seek(0)
         else:
-            file_sha = sha1(file_contents).hexdigest()
+            if isinstance(file_contents, str) == True:
+                try:
+                    file_sha = sha1(file_contents.encode('utf-8')).hexdigest()
+                except UnicodeDecodeError:
+                    file_sha = sha1(file_contents).hexdigest()
+            else:
+                file_sha = sha1(file_contents).hexdigest()
+
         headers = {
             'Content-Type': mime_content_type or 'b2/x-auto',
-            'Content-Length': str(file_size),
             'X-Bz-Content-Sha1': file_sha,
             'X-Bz-File-Name': b2_url_encode(file_name),
             'Authorization': auth_token

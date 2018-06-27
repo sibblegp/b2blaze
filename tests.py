@@ -53,7 +53,7 @@ class TestB2(object):
         """
         #from time import sleep
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        binary_file = open('test_pic.jpg', 'rb')
+        binary_file = open('b2blaze/test_pic.jpg', 'rb')
         uploaded_file = bucket.files.upload(contents=binary_file.read(), file_name='test_pic.jpg')
         binary_file.close()
         #sleep(3)
@@ -61,6 +61,17 @@ class TestB2(object):
         #save_file = open('save_pic.jpg', 'wb')
         #save_file.write(downloaded_file.read())
         #save_file.close()
+
+    def test_direct_upload_file(self):
+        """
+
+        :return:
+        """
+        #from time import sleep
+        bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
+        binary_file = open('b2blaze/test_pic.jpg', 'rb')
+        uploaded_file = bucket.files.upload(contents=binary_file, file_name='test_pic2.jpg')
+        binary_file.close()
 
     def test_download_file(self):
         """
