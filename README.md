@@ -20,7 +20,7 @@ You will need a key_id and an application_key to run b2blaze. You can obtain the
 
 ## Example Usage
 
-b2blaze is built around OOP principals and as such all buckets and files are objects which you can interact with. Let's see an example where we list all of our files in a bucket:
+b2blaze is built around OOP principles and as such all buckets and files are objects which you can interact with. Let's see an example where we list all of our files in a bucket:
 
 ```
 from b2blaze import B2
