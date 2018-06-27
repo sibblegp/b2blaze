@@ -1,4 +1,4 @@
-# b2blaze
+# b2blaze [![CircleCI](https://circleci.com/gh/sibblegp/b2blaze/tree/master.svg?style=svg)](https://circleci.com/gh/sibblegp/b2blaze/tree/master)
 
 Welcome to the b2blaze library for Python.
 
