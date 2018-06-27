@@ -10,7 +10,7 @@ This library will allow you to easily interact with B2 buckets and files as firs
 
 To install b2blaze, run the following command in the proper environment:
 
-```
+```bash
 pip install b2blaze
 ```
 
@@ -20,9 +20,9 @@ You will need a key_id and an application_key to run b2blaze. You can obtain the
 
 ## Example Usage
 
-b2blaze is built around OOP principals and as such all buckets and files are objects which you can interact with. Let's see an example where we list all of our files in a bucket:
+b2blaze is built around OOP principles and as such all buckets and files are objects which you can interact with. Let's see an example where we list all of our files in a bucket:
 
-```
+```python
 from b2blaze import B2
 b2 = B2()
 bucket = b2.buckets.get('test_bucket')
@@ -31,7 +31,7 @@ files = bucket.files.all()
 
 Files will be a list of B2File objects with all of their properties which can then be downloaded by running:
 
-```
+```python
 content = files[0].download()
 ```
 
@@ -41,7 +41,7 @@ This is a BytesIO object that you can manipulate in any way include saving local
 
 ## The B2 Object
 
-```angular2html
+```python
 from b2blaze import B2
 b2 = B2()
 ```
@@ -53,7 +53,7 @@ Buckets are essentially the highest level folders in B2, similar to how buckets 
 
 #### Bucket Properties
 
-```angular2html
+```python
 bucket_id
 bucket_name
 bucket_type
@@ -66,13 +66,13 @@ deleted
 
 #### List All Buckets
 
-```angular2html
+```python
 buckets = b2.buckets.all()
 ```
 
 #### Create a Bucket
 
-```angular2html
+```python
 bucket = b2.buckets.create('test_bucket', security=b2.buckets.public)
 ```
 
@@ -80,14 +80,14 @@ Buckets can either be public or private. This does not change the functionality 
 
 #### Retrieve a bucket
 
-```angular2html
+```python
 bucket_by_name = b2.buckets.get('test_bucket')
 bucket_by_id = b2.buckets.get(bucket_id='abcd')
 ```
 
 #### Delete a bucket
 
-```angular2html
+```python
 bucket.delete()
 ```
 
@@ -99,7 +99,7 @@ Files are the same files you store locally. They can be stored inside folders pl
 
 #### File Properties
 
-```angular2html
+```python
 file_id
 file_name
 content_sha1
@@ -113,7 +113,7 @@ deleted
 
 #### List All Files in a Bucket
 
-```angular2html
+```python
 bucket.files.all()
 ```
 
@@ -121,28 +121,28 @@ NOTE: There may be tens of thousands of files (or more) in a bucket. This operat
 
 #### Create (upload) a File
 
-```angular2html
+```python
 text_file = open('hello.txt').read()
 new_file = bucket.files.upload(contents=text_file, file_name='folder/hello.txt')
 ```
 
 #### Retrieve a File's Information (Necessary before Downloading)
 
-```angular2html
+```python
 file_by_name = bucket.files.get(file_name='folder/hello.txt')
 file_by_id = bucket.files.get(file_id='abcd1234')
 ```
 
 #### Download a file
 
-````angular2html
+````python
 file = bucket.files.get(file_name='folder/hello.txt')
 downloaded_file = file.download()
 ````
 
 This returns a BytesIO object which you can manipulate in Python using a tool like PIL, serve on a website, or easily save like this:
 
-```angular2html
+```python
 save_file = open('save_pic.jpg', 'wb')
 save_file.write(downloaded_file.read())
 save_file.close()
@@ -150,7 +150,7 @@ save_file.close()
 
 #### Delete a file
 
-```angular2html
+```python
 file.delete()
 ```
 
