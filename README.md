@@ -45,7 +45,7 @@ This is a BytesIO object that you can manipulate in any way include saving local
 from b2blaze import B2
 b2 = B2()
 ```
-The B2 object is how you access b2blaze's functionality. You can optionally pass in "key_id" and "application_key" as named arguments but you should probably set them as environment variable as described above.
+The B2 object is how you access b2blaze's functionality. You can optionally pass in "key_id" and "application_key" as arguments but you should probably set them as environment variable as described above.
 
 ## Buckets
 
