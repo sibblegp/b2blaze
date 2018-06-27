@@ -126,6 +126,8 @@ text_file = open('hello.txt').read()
 new_file = bucket.files.upload(contents=text_file, file_name='folder/hello.txt')
 ```
 
+NOTE: Reading the file is optional. You don't have to call .read() and instead can send the file directly to contents. This should save some memory.
+
 #### Retrieve a File's Information (Necessary before Downloading)
 
 ```python
