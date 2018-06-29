@@ -10,23 +10,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 Additional code copyright George Sibble 2018
 """
 
-import urllib
 try:
-    import urllib.parse
+    from urllib import quote, unquote_plus
 except ImportError:
-    pass
+    from urllib.parse import quote, unquote_plus
+
 
 def b2_url_encode(s):
-    try:
-        return urllib.quote(s.encode('utf-8'))
-    except Exception:
-        return urllib.parse.quote(s.encode('utf-8'))
+    return quote(s.encode('utf-8'))
+
 
 def b2_url_decode(s):
-    try:
-        return urllib.unquote_plus(str(s)).decode('utf-8')
-    except Exception:
-        return urllib.parse.unquote_plus(str(s)).decode('utf-8')
+    return unquote_plus(str(s)).decode('utf-8')
+
 
 def decode_error(response):
     try:
