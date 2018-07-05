@@ -1,8 +1,8 @@
 #!/usr/bin/env python2.7
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
-VERSION = '0.1.7'
+VERSION = '0.1.8'
 
 from os import path
 this_directory = path.abspath(path.dirname(__file__))
@@ -14,7 +14,7 @@ setup(name='b2blaze',
       description='b2blaze library for connecting to Backblaze B2',
       long_description=long_description,
       long_description_content_type='text/markdown',
-      packages=['b2blaze'],
+      packages=find_packages(),
       author='George Sibble',
       author_email='gsibble@gmail.com',
       python_requires='>=2.7',

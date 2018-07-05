@@ -1,5 +1,6 @@
 # b2blaze 
 ![CircleCI](https://img.shields.io/circleci/project/github/sibblegp/b2blaze.svg)
+[![Code Coverage](https://scrutinizer-ci.com/g/sibblegp/b2blaze/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/sibblegp/b2blaze/?branch=master)
 
 
 Welcome to the b2blaze library for Python.
