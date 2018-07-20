@@ -107,7 +107,6 @@ class B2FileList(object):
         #     return self._files_by_id.get(file_id, None)
         # pass
 
-
     def upload(self, contents, file_name, mime_content_type=None):
         """
 
@@ -122,10 +121,10 @@ class B2FileList(object):
         params = {
             'bucketId': self.bucket.bucket_id
         }
-        upload_url_request = self.connector.make_request(path=get_upload_url_path, method='post', params=params)
-        if upload_url_request.status_code == 200:
-            upload_url = upload_url_request.json().get('uploadUrl', None)
-            auth_token = upload_url_request.json().get('authorizationToken', None)
+        upload_url_response = self.connector.make_request(path=get_upload_url_path, method='post', params=params)
+        if upload_url_response.status_code == 200:
+            upload_url = upload_url_response.json().get('uploadUrl', None)
+            auth_token = upload_url_response.json().get('authorizationToken', None)
             upload_response = self.connector.upload_file(file_contents=contents, file_name=file_name,
                                                          upload_url=upload_url, auth_token=auth_token)
             if upload_response.status_code == 200:
@@ -134,4 +133,4 @@ class B2FileList(object):
             else:
                 raise B2RequestError(decode_error(upload_response))
         else:
-            raise B2RequestError(decode_error(upload_url_request))
+            raise B2RequestError(decode_error(upload_url_response))
