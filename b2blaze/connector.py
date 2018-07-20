@@ -98,16 +98,7 @@ class B2Connector(object):
         else:
             raise B2AuthorizationError('Unknown Error')
 
-    def upload_file(self, file_contents, file_name, upload_url, auth_token, direct=False, mime_content_type=None):
-        """
-
-        :param file_contents:
-        :param file_name:
-        :param upload_url:
-        :param auth_token:
-        :param mime_content_type:
-        :return:
-        """
+    def _sha(self, file_contents):
         buf_size = 65536
         if hasattr(file_contents, 'read'):  # If it has `read`, then it's a file-like object that we can stream
             sha = sha1()
@@ -126,11 +117,47 @@ class B2Connector(object):
                     file_sha = sha1(file_contents).hexdigest()
             else:
                 file_sha = sha1(file_contents).hexdigest()
+        return file_sha
+
+    def upload_file(self, file_contents, file_name, upload_url, auth_token, direct=False, mime_content_type=None):
+        """
+
+        :param file_contents:
+        :param file_name:
+        :param upload_url:
+        :param auth_token:
+        :param mime_content_type:
+        :return:
+        """
+        file_sha = self._sha(file_contents)
 
         headers = {
             'Content-Type': mime_content_type or 'b2/x-auto',
             'X-Bz-Content-Sha1': file_sha,
             'X-Bz-File-Name': b2_url_encode(file_name),
+            'Authorization': auth_token
+        }
+
+        return requests.post(upload_url, headers=headers, data=file_contents)
+
+    def upload_part(self, file_contents, content_length, part_number, sha_list, upload_url, auth_token):
+        """
+
+        :param file_contents:
+        :param content_length:
+        :param part_number:
+        :param sha_list:
+        :param upload_url:
+        :param auth_token:
+        :return:
+        """
+        file_sha = self._sha(file_contents)
+        sha_list.append(file_sha)
+
+        headers = {
+            'Content-Length': str(content_length),
+            'X-Bz-Content-Sha1': file_sha,
+            'X-Bz-Part-Number': str(part_number),
             'Authorization': auth_token
         }
 

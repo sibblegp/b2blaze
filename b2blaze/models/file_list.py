@@ -134,3 +134,59 @@ class B2FileList(object):
                 raise B2RequestError(decode_error(upload_response))
         else:
             raise B2RequestError(decode_error(upload_url_response))
+
+    def upload_large_file(self, contents, file_name, part_size, threads, mime_content_type=None):
+        """
+
+        :param contents:
+        :param file_name:
+        :param part_size:
+        :param threads:
+        :param mime_content_type:
+        :return:
+        """
+        if file_name[0] == '/':
+            file_name = file_name[1:]
+        start_large_file_path = '/b2_start_large_file'
+        params = {
+            'bucketId': self.bucket.bucket_id,
+            'fileName': b2_url_encode(file_name),
+            'contentType': mime_content_type or 'b2/x-auto'
+        }
+        large_file_response = self.connector.make_request(path=start_large_file_path, method='post', params=params)
+        if large_file_response.status_code == 200:
+            file_id = large_file_response.json().get('fileId', None)
+            get_upload_part_url_path = '/b2_get_upload_part_url'
+            params = {
+                'fileId': file_id
+            }
+            part_number = 1
+            sha_list = []
+            buf = contents.read(part_size)
+            while len(buf) > 0:
+                upload_part_url_response = self.connector.make_request(path=get_upload_part_url_path, method='post', params=params)
+                if upload_part_url_response.status_code == 200:
+                    upload_url = upload_part_url_response.json().get('uploadUrl')
+                    auth_token = upload_part_url_response.json().get('authorizationToken')
+                    upload_part_response = self.connector.upload_part(file_contents=buf, content_length=part_size,
+                                                                 part_number=part_number, sha_list=sha_list,
+                                                                 upload_url=upload_url, auth_token=auth_token)
+                    if upload_part_response.status_code != 200:
+                        raise B2RequestError(decode_error(upload_part_response))
+                else:
+                    raise B2RequestError(decode_error(upload_part_url_response))
+                part_number += 1
+                buf = contents.read(part_size)
+            finish_large_file_path = '/b2_finish_large_file'
+            params = {
+                'fileId': file_id,
+                'partSha1Array': sha_list
+            }
+            finish_large_file_response = self.connector.make_request(path=finish_large_file_path, method='post', params=params)
+            if finish_large_file_response.status_code == 200:
+                new_file = B2File(connector=self.connector, parent_list=self, **finish_large_file_response.json())
+                return new_file
+            else:
+                raise B2RequestError(decode_error(finish_large_file_response))
+        else:
+            raise B2RequestError(decode_error(large_file_response))
