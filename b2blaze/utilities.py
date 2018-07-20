@@ -23,6 +23,11 @@ def b2_url_encode(s):
 def b2_url_decode(s):
     return unquote_plus(str(s)).decode('utf-8')
 
+def read_in_chunks(file, chunk_size):
+    chunk = file.read(chunk_size)
+    while chunk:
+        yield chunk
+        chunk = file.read(chunk_size)
 
 def decode_error(response):
     try:

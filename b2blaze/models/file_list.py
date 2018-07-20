@@ -3,9 +3,8 @@ Copyright George Sibble 2018
 """
 
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
-
 from .b2_file import B2File
-from ..utilities import b2_url_encode, decode_error
+from ..utilities import b2_url_encode, read_in_chunks, decode_error
 from ..b2_exceptions import B2RequestError, B2FileNotFound
 
 class B2FileList(object):
@@ -160,23 +159,19 @@ class B2FileList(object):
             params = {
                 'fileId': file_id
             }
-            part_number = 1
             sha_list = []
-            buf = contents.read(part_size)
-            while len(buf) > 0:
+            for part_number, chunk in enumerate(read_in_chunks(contents, part_size), 1):
                 upload_part_url_response = self.connector.make_request(path=get_upload_part_url_path, method='post', params=params)
                 if upload_part_url_response.status_code == 200:
                     upload_url = upload_part_url_response.json().get('uploadUrl')
                     auth_token = upload_part_url_response.json().get('authorizationToken')
-                    upload_part_response = self.connector.upload_part(file_contents=buf, content_length=part_size,
-                                                                 part_number=part_number, sha_list=sha_list,
-                                                                 upload_url=upload_url, auth_token=auth_token)
+                    upload_part_response = self.connector.upload_part(file_contents=chunk, content_length=part_size,
+                                                                      part_number=part_number, sha_list=sha_list,
+                                                                      upload_url=upload_url, auth_token=auth_token)
                     if upload_part_response.status_code != 200:
                         raise B2RequestError(decode_error(upload_part_response))
                 else:
                     raise B2RequestError(decode_error(upload_part_url_response))
-                part_number += 1
-                buf = contents.read(part_size)
             finish_large_file_path = '/b2_finish_large_file'
             params = {
                 'fileId': file_id,

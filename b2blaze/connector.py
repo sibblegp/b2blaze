@@ -7,7 +7,7 @@ from requests.auth import HTTPBasicAuth
 from b2blaze.b2_exceptions import B2AuthorizationError, B2RequestError, B2InvalidRequestType
 import sys
 from hashlib import sha1
-from b2blaze.utilities import b2_url_encode, decode_error
+from b2blaze.utilities import b2_url_encode, read_in_chunks, decode_error
 
 class B2Connector(object):
     """
@@ -102,11 +102,8 @@ class B2Connector(object):
         buf_size = 65536
         if hasattr(file_contents, 'read'):  # If it has `read`, then it's a file-like object that we can stream
             sha = sha1()
-            buf = file_contents.read(buf_size)
-            file_size = len(buf)
-            while len(buf) > 0:
-                sha.update(buf)
-                buf = file_contents.read(buf_size)
+            for chunk in read_in_chunks(file_contents, buf_size):
+                sha.update(chunk)
             file_sha = sha.hexdigest()
             file_contents.seek(0)
         else:
