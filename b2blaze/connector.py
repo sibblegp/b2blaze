@@ -28,6 +28,7 @@ class B2Connector(object):
         self.authorized_at = None
         self.api_url = None
         self.download_url = None
+        self.recommended_part_size = None
         self.api_session = None
         #TODO:  Part Size
         self._authorize()
@@ -62,6 +63,7 @@ class B2Connector(object):
             self.auth_token = result_json['authorizationToken']
             self.api_url = result_json['apiUrl'] + '/b2api/v1'
             self.download_url = result_json['downloadUrl'] + '/file/'
+            self.recommended_part_size = result_json['recommendedPartSize']
             self.api_session = requests.Session()
             self.api_session.headers.update({
                 'Authorization': self.auth_token
@@ -137,19 +139,17 @@ class B2Connector(object):
 
         return requests.post(upload_url, headers=headers, data=file_contents)
 
-    def upload_part(self, file_contents, content_length, part_number, sha_list, upload_url, auth_token):
+    def upload_part(self, file_contents, content_length, part_number, upload_url, auth_token):
         """
 
         :param file_contents:
         :param content_length:
         :param part_number:
-        :param sha_list:
         :param upload_url:
         :param auth_token:
         :return:
         """
         file_sha = self._sha(file_contents)
-        sha_list.append(file_sha)
 
         headers = {
             'Content-Length': str(content_length),
@@ -158,7 +158,7 @@ class B2Connector(object):
             'Authorization': auth_token
         }
 
-        return requests.post(upload_url, headers=headers, data=file_contents)
+        return (requests.post(upload_url, headers=headers, data=file_contents), file_sha)
 
     def download_file(self, file_id):
         """

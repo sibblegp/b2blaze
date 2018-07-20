@@ -6,6 +6,7 @@ from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B
 from .b2_file import B2File
 from ..utilities import b2_url_encode, read_in_chunks, decode_error
 from ..b2_exceptions import B2RequestError, B2FileNotFound
+from multiprocessing.dummy import Pool as ThreadPool
 
 class B2FileList(object):
     """
@@ -134,18 +135,20 @@ class B2FileList(object):
         else:
             raise B2RequestError(decode_error(upload_url_response))
 
-    def upload_large_file(self, contents, file_name, part_size, threads, mime_content_type=None):
+    def upload_large_file(self, contents, file_name, part_size=None, num_threads=4, mime_content_type=None):
         """
 
         :param contents:
         :param file_name:
         :param part_size:
-        :param threads:
+        :param num_threads:
         :param mime_content_type:
         :return:
         """
         if file_name[0] == '/':
             file_name = file_name[1:]
+        if part_size == None:
+            part_size = self.connector.recommended_part_size
         start_large_file_path = '/b2_start_large_file'
         params = {
             'bucketId': self.bucket.bucket_id,
@@ -159,19 +162,26 @@ class B2FileList(object):
             params = {
                 'fileId': file_id
             }
-            sha_list = []
-            for part_number, chunk in enumerate(read_in_chunks(contents, part_size), 1):
+            pool = ThreadPool(num_threads)
+            def upload_part_worker(args):
+                part_number = args[0]
+                chunk = args[1]
                 upload_part_url_response = self.connector.make_request(path=get_upload_part_url_path, method='post', params=params)
                 if upload_part_url_response.status_code == 200:
                     upload_url = upload_part_url_response.json().get('uploadUrl')
                     auth_token = upload_part_url_response.json().get('authorizationToken')
                     upload_part_response = self.connector.upload_part(file_contents=chunk, content_length=part_size,
-                                                                      part_number=part_number, sha_list=sha_list,
-                                                                      upload_url=upload_url, auth_token=auth_token)
-                    if upload_part_response.status_code != 200:
-                        raise B2RequestError(decode_error(upload_part_response))
+                                                                      part_number=part_number, upload_url=upload_url,
+                                                                      auth_token=auth_token)
+                    if upload_part_response[0].status_code == 200:
+                        return upload_part_response[1]
+                    else:
+                        raise B2RequestError(decode_error(upload_part_response[0]))
                 else:
                     raise B2RequestError(decode_error(upload_part_url_response))
+            sha_list = pool.map(upload_part_worker, enumerate(read_in_chunks(contents, part_size), 1))
+            pool.close()
+            pool.join()
             finish_large_file_path = '/b2_finish_large_file'
             params = {
                 'fileId': file_id,

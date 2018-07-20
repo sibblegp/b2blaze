@@ -122,14 +122,28 @@ bucket.files.all()
 
 NOTE: There may be tens of thousands of files (or more) in a bucket. This operation will get information and create objects for all of them. It may take quite some time and be computationally expensive to run.
 
-#### Create (upload) a File
+#### Upload a File
 
 ```python
 text_file = open('hello.txt').read()
 new_file = bucket.files.upload(contents=text_file, file_name='folder/hello.txt')
 ```
 
-NOTE: Reading the file is optional. You don't have to call .read() and instead can send the file directly to contents. This should save some memory.
+NOTE: Reading the file is optional. You don't have to call `.read()` and instead can send the file directly to contents. This should save some memory.
+
+#### Upload a Large File
+
+```python
+large_file = open('large_file.bin', 'rb')
+new_file = bucket.files.upload_large_file(contents=large_file, file_name='folder/large_file.bin',
+                                          part_size=100*1000*1000, num_threads=4)
+```
+
+NOTE: You cannot call `.read()` on the file because the function will do it for you, buffering `part_size` at a time across `num_threads`. Make sure that `part_size * num_threads` bytes of memory is available on your system.
+
+NOTE2: Per [Backblaze recommendation](https://www.backblaze.com/b2/docs/large_files.html), `part_size` defaults to `recommendedPartSize` from `b2_authorize_account` (typically 100MB). `num_threads` defaults to 4 threads.
+
+NOTE3: The minimum part size is 5MB and you must have must have at least 2 parts.
 
 #### Retrieve a File's Information (Necessary before Downloading)
 
