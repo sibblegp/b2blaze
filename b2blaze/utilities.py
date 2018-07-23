@@ -9,6 +9,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 Additional code copyright George Sibble 2018
 """
+import os
+from hashlib import sha1
 
 try:
     from urllib import quote, unquote_plus
@@ -23,11 +25,11 @@ def b2_url_encode(s):
 def b2_url_decode(s):
     return unquote_plus(str(s)).decode('utf-8')
 
-def read_in_chunks(file, chunk_size):
-    chunk = file.read(chunk_size)
-    while chunk:
-        yield chunk
-        chunk = file.read(chunk_size)
+def get_content_length(file):
+    if hasattr(file, 'name') and os.path.isfile(file.name):
+        return os.path.getsize(file.name)
+    else:
+        raise Exception('Content-Length could not be automatically determined.')
 
 def decode_error(response):
     try:
@@ -35,3 +37,117 @@ def decode_error(response):
         return str(response.status_code) + ' - ' + str(response_json)
     except ValueError:
         raise ValueError(str(response.status_code) + ' - Invalid JSON Response')
+
+def get_part_ranges(content_length, part_size):
+    parts = []
+    next_offest = 0
+    while content_length > 0:
+        if content_length < part_size:
+            part_size = content_length
+        parts.append((next_offest, part_size))
+        next_offest += part_size
+        content_length -= part_size
+    return parts
+
+class RangeStream:
+    """
+    Wraps a file-like object (read only) and reads the selected
+    range of the file.
+    """
+
+    def __init__(self, stream, offset, length):
+        """
+
+        :param stream:
+        :param offset:
+        :param length:
+        :return: None
+        """
+        self.stream = stream
+        self.offset = offset
+        self.remaining = length
+
+    def __enter__(self):
+        self.stream.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.stream.__exit__(exc_type, exc_val, exc_tb)
+
+    def seek(self, pos):
+        self.stream.seek(self.offset + pos)
+
+    def read(self, size=None):
+        if size is None:
+            to_read = self.remaining
+        else:
+            to_read = min(size, self.remaining)
+        data = self.stream.read(to_read)
+        self.remaining -= len(data)
+        return data
+
+class StreamWithHashProgress:
+    """
+    Wraps a file-like object (read-only), hashes on-the-fly, and
+    updates a progress_listener as data is read.
+    """
+
+    def __init__(self, stream, progress_listener=None):
+        """
+
+        :param stream:
+        :param progress_listener:
+        :return: None
+        """
+        self.stream = stream
+        self.progress_listener = progress_listener
+        self.bytes_completed = 0
+        self.digest = sha1()
+        self.hash = None
+        self.hash_read = 0
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self.stream.__exit__(exc_type, exc_val, exc_tb)
+
+    def read(self, size=None):
+        data = b''
+        if self.hash is None:
+            # Read some bytes from stream
+            if size is None:
+                data = self.stream.read()
+            else:
+                data = self.stream.read(size)
+
+            # Update hash
+            self.digest.update(data)
+
+            # Check for end of stream
+            if size is None or len(data) < size:
+                self.hash = self.digest.hexdigest()
+                if size is not None:
+                    size -= len(data)
+
+            # Update progress listener
+            self._update(len(data))
+
+        else:
+            # The end of stream was reached, return hash now
+            size = size or len(self.hash)
+            data += str.encode(self.hash[self.hash_read:self.hash_read + size])
+            self.hash_read += size
+
+        return data
+
+    def _update(self, delta):
+        self.bytes_completed += delta
+        if self.progress_listener is not None:
+            self.progress_listener(self.bytes_completed)
+
+    def get_hash(self):
+        return self.hash
+
+    def hash_size(self):
+        return self.digest.digest_size * 2

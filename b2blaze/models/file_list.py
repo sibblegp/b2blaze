@@ -4,7 +4,7 @@ Copyright George Sibble 2018
 
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
 from .b2_file import B2File
-from ..utilities import b2_url_encode, read_in_chunks, decode_error
+from ..utilities import b2_url_encode, get_content_length, get_part_ranges, decode_error, RangeStream, StreamWithHashProgress
 from ..b2_exceptions import B2RequestError, B2FileNotFound
 from multiprocessing.dummy import Pool as ThreadPool
 
@@ -107,12 +107,14 @@ class B2FileList(object):
         #     return self._files_by_id.get(file_id, None)
         # pass
 
-    def upload(self, contents, file_name, mime_content_type=None):
+    def upload(self, contents, file_name, mime_content_type=None, content_length=None, progress_listener=None):
         """
 
         :param contents:
         :param file_name:
         :param mime_content_type:
+        :param content_length:
+        :param progress_listener:
         :return:
         """
         if file_name[0] == '/':
@@ -126,7 +128,8 @@ class B2FileList(object):
             upload_url = upload_url_response.json().get('uploadUrl', None)
             auth_token = upload_url_response.json().get('authorizationToken', None)
             upload_response = self.connector.upload_file(file_contents=contents, file_name=file_name,
-                                                         upload_url=upload_url, auth_token=auth_token)
+                                                         upload_url=upload_url, auth_token=auth_token,
+                                                         content_length=content_length, progress_listener=progress_listener)
             if upload_response.status_code == 200:
                 new_file = B2File(connector=self.connector, parent_list=self, **upload_response.json())
                 return new_file
@@ -135,7 +138,8 @@ class B2FileList(object):
         else:
             raise B2RequestError(decode_error(upload_url_response))
 
-    def upload_large_file(self, contents, file_name, part_size=None, num_threads=4, mime_content_type=None):
+    def upload_large_file(self, contents, file_name, part_size=None, num_threads=4,
+                          mime_content_type=None, content_length=None, progress_listener=None):
         """
 
         :param contents:
@@ -143,12 +147,16 @@ class B2FileList(object):
         :param part_size:
         :param num_threads:
         :param mime_content_type:
+        :param content_length:
+        :param progress_listener:
         :return:
         """
         if file_name[0] == '/':
             file_name = file_name[1:]
         if part_size == None:
             part_size = self.connector.recommended_part_size
+        if content_length == None:
+            content_length = get_content_length(contents)
         start_large_file_path = '/b2_start_large_file'
         params = {
             'bucketId': self.bucket.bucket_id,
@@ -164,22 +172,25 @@ class B2FileList(object):
             }
             pool = ThreadPool(num_threads)
             def upload_part_worker(args):
-                part_number = args[0]
-                chunk = args[1]
-                upload_part_url_response = self.connector.make_request(path=get_upload_part_url_path, method='post', params=params)
-                if upload_part_url_response.status_code == 200:
-                    upload_url = upload_part_url_response.json().get('uploadUrl')
-                    auth_token = upload_part_url_response.json().get('authorizationToken')
-                    upload_part_response = self.connector.upload_part(file_contents=chunk, content_length=part_size,
-                                                                      part_number=part_number, upload_url=upload_url,
-                                                                      auth_token=auth_token)
-                    if upload_part_response[0].status_code == 200:
-                        return upload_part_response[1]
+                part_number, part_range = args
+                offset, content_length = part_range
+                with open(contents.name, 'rb') as file:
+                    file.seek(offset)
+                    stream = RangeStream(file, offset, content_length)
+                    upload_part_url_response = self.connector.make_request(path=get_upload_part_url_path, method='post', params=params)
+                    if upload_part_url_response.status_code == 200:
+                        upload_url = upload_part_url_response.json().get('uploadUrl')
+                        auth_token = upload_part_url_response.json().get('authorizationToken')
+                        upload_part_response = self.connector.upload_part(file_contents=stream, content_length=content_length,
+                                                                          part_number=part_number, upload_url=upload_url,
+                                                                          auth_token=auth_token, progress_listener=progress_listener)
+                        if upload_part_response.status_code == 200:
+                            return upload_part_response.json().get('contentSha1', None)
+                        else:
+                            raise B2RequestError(decode_error(upload_part_response))
                     else:
-                        raise B2RequestError(decode_error(upload_part_response[0]))
-                else:
-                    raise B2RequestError(decode_error(upload_part_url_response))
-            sha_list = pool.map(upload_part_worker, enumerate(read_in_chunks(contents, part_size), 1))
+                        raise B2RequestError(decode_error(upload_part_url_response))
+            sha_list = pool.map(upload_part_worker, enumerate(get_part_ranges(content_length, part_size), 1))
             pool.close()
             pool.join()
             finish_large_file_path = '/b2_finish_large_file'
