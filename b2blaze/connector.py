@@ -7,7 +7,7 @@ from requests.auth import HTTPBasicAuth
 from b2blaze.b2_exceptions import B2AuthorizationError, B2RequestError, B2InvalidRequestType
 import sys
 from hashlib import sha1
-from b2blaze.utilities import b2_url_encode, decode_error
+from b2blaze.utilities import b2_url_encode, decode_error, get_content_length, StreamWithHashProgress
 
 class B2Connector(object):
     """
@@ -28,6 +28,7 @@ class B2Connector(object):
         self.authorized_at = None
         self.api_url = None
         self.download_url = None
+        self.recommended_part_size = None
         self.api_session = None
         #TODO:  Part Size
         self._authorize()
@@ -62,6 +63,7 @@ class B2Connector(object):
             self.auth_token = result_json['authorizationToken']
             self.api_url = result_json['apiUrl'] + '/b2api/v1'
             self.download_url = result_json['downloadUrl'] + '/file/'
+            self.recommended_part_size = result_json['recommendedPartSize']
             self.api_session = requests.Session()
             self.api_session.headers.update({
                 'Authorization': self.auth_token
@@ -98,7 +100,8 @@ class B2Connector(object):
         else:
             raise B2AuthorizationError('Unknown Error')
 
-    def upload_file(self, file_contents, file_name, upload_url, auth_token, direct=False, mime_content_type=None):
+    def upload_file(self, file_contents, file_name, upload_url, auth_token,
+                    direct=False, mime_content_type=None, content_length=None, progress_listener=None):
         """
 
         :param file_contents:
@@ -106,35 +109,55 @@ class B2Connector(object):
         :param upload_url:
         :param auth_token:
         :param mime_content_type:
+        :param content_length
+        :param progress_listener
         :return:
         """
-        buf_size = 65536
-        if hasattr(file_contents, 'read'):  # If it has `read`, then it's a file-like object that we can stream
-            sha = sha1()
-            buf = file_contents.read(buf_size)
-            file_size = len(buf)
-            while len(buf) > 0:
-                sha.update(buf)
-                buf = file_contents.read(buf_size)
-            file_sha = sha.hexdigest()
-            file_contents.seek(0)
+        if hasattr(file_contents, 'read'):
+            if content_length is None:
+                content_length = get_content_length(file_contents)
+            file_sha = 'hex_digits_at_end'
+            data = StreamWithHashProgress(stream=file_contents, progress_listener=progress_listener)
+            content_length += data.hash_size()
         else:
-            if isinstance(file_contents, str) == True:
-                try:
-                    file_sha = sha1(file_contents.encode('utf-8')).hexdigest()
-                except UnicodeDecodeError:
-                    file_sha = sha1(file_contents).hexdigest()
-            else:
-                file_sha = sha1(file_contents).hexdigest()
+            if content_length is None:
+                content_length = len(file_contents)
+            file_sha = sha1(file_contents).hexdigest()
+            data = file_contents
 
         headers = {
             'Content-Type': mime_content_type or 'b2/x-auto',
+            'Content-Length': str(content_length),
             'X-Bz-Content-Sha1': file_sha,
             'X-Bz-File-Name': b2_url_encode(file_name),
             'Authorization': auth_token
         }
 
-        return requests.post(upload_url, headers=headers, data=file_contents)
+        return requests.post(upload_url, headers=headers, data=data)
+
+    def upload_part(self, file_contents, content_length, part_number, upload_url, auth_token, progress_listener=None):
+        """
+
+        :param file_contents:
+        :param content_length:
+        :param part_number:
+        :param upload_url:
+        :param auth_token:
+        :param progress_listener:
+        :return:
+        """
+        file_sha = 'hex_digits_at_end'
+        data = StreamWithHashProgress(stream=file_contents, progress_listener=progress_listener)
+        content_length += data.hash_size()
+
+        headers = {
+            'Content-Length': str(content_length),
+            'X-Bz-Content-Sha1': file_sha,
+            'X-Bz-Part-Number': str(part_number),
+            'Authorization': auth_token
+        }
+
+        return requests.post(upload_url, headers=headers, data=data)
 
     def download_file(self, file_id):
         """
