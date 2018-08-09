@@ -45,8 +45,7 @@ class B2Connector(object):
         else:
             if (datetime.datetime.utcnow() - self.authorized_at) > datetime.timedelta(hours=23):
                 self._authorize()
-            else:
-                return True
+            return True
 
 
     def _authorize(self):
