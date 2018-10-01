@@ -14,7 +14,6 @@ cryptography==2.3
 curtsies==0.3.0
 enum34==1.1.6
 funcsigs==1.0.2
-futures==3.2.0
 greenlet==0.4.13
 idna==2.7
 ipaddress==1.0.22

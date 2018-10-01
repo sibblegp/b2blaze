@@ -43,7 +43,7 @@ class TestB2(object):
         :return: None
         """
         bucket = self.b2.buckets.get(bucket_name=self.bucket_name)
-        file = bucket.files.upload(contents='Hello World!', file_name='test/hello.txt')
+        file = bucket.files.upload(contents='Hello World!'.encode('utf-8'), file_name='test/hello.txt')
         file2 = bucket.files.get(file_id=file.file_id)
 
     def test_create_z_binary_file(self):
@@ -102,7 +102,10 @@ class TestB2(object):
         :return: None
         """
         buckets = self.b2.buckets.all()
-        expect(len(buckets)).should.be.greater_than(1)
+        expect(len(buckets)).should.be.greater_than(0)
+        current_bucket = None
+        assert any(bucket for bucket in buckets if bucket.bucket_name == self.bucket_name) == True
+        
 
     def test_get_files(self):
         """
