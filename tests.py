@@ -104,10 +104,7 @@ class TestB2(object):
         buckets = self.b2.buckets.all()
         expect(len(buckets)).should.be.greater_than(0)
         current_bucket = None
-        for bucket in buckets:
-            if bucket.bucket_name == self.bucket_name:
-                current_bucket = bucket
-        assert current_bucket != None
+        assert any(bucket for bucket in buckets if bucket.bucket_name == self.bucket_name) == True
         
 
     def test_get_files(self):
