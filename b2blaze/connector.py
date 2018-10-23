@@ -4,11 +4,11 @@ Copyright George Sibble 2018
 import requests
 import datetime
 from requests.auth import HTTPBasicAuth
-from b2blaze.b2_exceptions import B2AuthorizationError, B2RequestError, B2InvalidRequestType
+from b2blaze_fork.b2_exceptions import B2AuthorizationError, B2RequestError, B2InvalidRequestType
 import sys
 from hashlib import sha1
-from b2blaze.utilities import b2_url_encode, decode_error, get_content_length, StreamWithHashProgress
-from api import BASE_API_URL, API_VERSION, AuthAPI, FileAPI
+from b2blaze_fork.utilities import b2_url_encode, decode_error, get_content_length, StreamWithHashProgress
+from .api import BASE_API_URL, API_VERSION, AuthAPI, FileAPI
 
 class B2Connector(object):
     """

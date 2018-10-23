@@ -47,7 +47,7 @@ class B2File(object):
         """
         path = FileAPI.delete
         params = {
-            'fileId': self.file_id,
+            'bucketId': self.parent_list.bucket.bucket_id,
             'fileName': b2_url_encode(self.file_name)
         }
         response = self.connector.make_request(path=path, method='post', params=params)
