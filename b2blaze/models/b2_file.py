@@ -4,6 +4,7 @@ Copyright George Sibble 2018
 from io import BytesIO
 from ..utilities import b2_url_encode, b2_url_decode, decode_error
 from ..b2_exceptions import B2RequestError
+from ..api import FileAPI
 
 class B2File(object):
     """
@@ -41,11 +42,29 @@ class B2File(object):
         self.deleted = False
 
     def delete(self):
+        """ Soft-delete a file (hide it from files list, but previous versions are saved.)
+        :return:
         """
+        path = FileAPI.delete
+        params = {
+            'fileId': self.file_id,
+            'fileName': b2_url_encode(self.file_name)
+        }
+        response = self.connector.make_request(path=path, method='post', params=params)
+        if response.status_code == 200:
+            self.deleted = True
+            del self.parent_list._files_by_name[self.file_name]
+            del self.parent_list._files_by_id[self.file_id]
+        else:
+            raise B2RequestError(decode_error(response))
+            #TODO:  Raise Error
+
+    def delete_version(self):
+        """ Delete a file version (Does not delete entire file history: only most recent version)
 
         :return:
         """
-        path = '/b2_delete_file_version'
+        path = FileAPI.delete_version
         params = {
             'fileId': self.file_id,
             'fileName': b2_url_encode(self.file_name)
@@ -76,5 +95,4 @@ class B2File(object):
 
         :return: file download url
         """
-        return self.connector.download_url.split('file/')[0] \
-                             + 'b2api/v1/b2_download_file_by_id?fileId=' + self.file_id
+        return self.connector.download_url + '?fileId=' + self.file_id
