@@ -100,12 +100,6 @@ class B2FileList(object):
         else:
             raise ValueError('file_name or file_id must be passed')
 
-        # self._update_files_list()
-        # if file_name is not None:
-        #     return self._files_by_name.get(file_name, None)
-        # else:
-        #     return self._files_by_id.get(file_id, None)
-        # pass
 
     def upload(self, contents, file_name, mime_content_type=None, content_length=None, progress_listener=None):
         """
@@ -132,6 +126,8 @@ class B2FileList(object):
                                                          content_length=content_length, progress_listener=progress_listener)
             if upload_response.status_code == 200:
                 new_file = B2File(connector=self.connector, parent_list=self, **upload_response.json())
+                # Update file list after upload
+                self._update_files_list()
                 return new_file
             else:
                 raise B2RequestError(decode_error(upload_response))
