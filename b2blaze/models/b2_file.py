@@ -28,8 +28,8 @@ class B2File(object):
         :param kwargs:
         """
         self.file_id = fileId
-        #self.file_name = b2_url_decode(fileName)
-        #TODO:  Find out if this is necessary
+        # self.file_name_decoded = b2_url_decode(fileName)
+         #TODO:  Find out if this is necessary
         self.file_name = fileName
         self.content_sha1 = contentSha1
         self.content_length = contentLength
@@ -42,10 +42,8 @@ class B2File(object):
         self.deleted = False
 
     def delete(self):
-        """ Soft-delete a file (hide it from files list, but previous versions are saved.)
-        :return:
-        """
-        path = API.delete
+        """ Soft-delete a file (hide it from files list, but previous versions are saved.) """
+        path = API.delete_file
         params = {
             'bucketId': self.parent_list.bucket.bucket_id,
             'fileName': b2_url_encode(self.file_name)
@@ -68,11 +66,8 @@ class B2File(object):
             
 
     def delete_version(self):
-        """ Delete a file version (Does not delete entire file history: only most recent version)
-
-        :return:
-        """
-        path = API.delete_version
+        """ Delete a file version (Does not delete entire file history: only most recent version) """
+        path = API.delete_file_version
         params = {
             'fileId': self.file_id,
             'fileName': b2_url_encode(self.file_name)
@@ -82,10 +77,7 @@ class B2File(object):
             raise B2RequestError(decode_error(response))
 
     def download(self):
-        """
-
-        :return:
-        """
+        """ Download latest file version """
         response = self.connector.download_file(file_id=self.file_id)
         if response.status_code == 200:
             return BytesIO(response.content)
@@ -94,8 +86,5 @@ class B2File(object):
 
     @property
     def url(self):
-        """
-
-        :return: file download url
-        """
+        """ Return file download URL """
         return self.connector.download_url + '?fileId=' + self.file_id
