@@ -7,7 +7,7 @@ from .b2_file import B2File
 from ..utilities import b2_url_encode, get_content_length, get_part_ranges, decode_error, RangeStream, StreamWithHashProgress
 from ..b2_exceptions import B2RequestError, B2FileNotFound
 from multiprocessing.dummy import Pool as ThreadPool
-from ..api import BucketAPI, FileAPI
+from ..api import API
 
 class B2FileList(object):
     """
@@ -37,7 +37,7 @@ class B2FileList(object):
         :param retrieve:
         :return:
         """
-        path = BucketAPI.list_files
+        path = API.list_all_files
         files = []
         new_files_to_retrieve = True
         params = {
@@ -93,7 +93,7 @@ class B2FileList(object):
                 'file_versions':    (list) b2blaze File objects
         """ 
 
-        path = BucketAPI.list_file_versions
+        path = API.list_file_versions
         file_versions = dict()
         file_names = []
         new_files_to_retrieve = True
@@ -142,7 +142,7 @@ class B2FileList(object):
         :return:
         """
         if file_name is not None:
-            path = BucketAPI.list_files
+            path = API.list_all_files
             params = {
                 'prefix': b2_url_encode(file_name),
                 'bucketId': self.bucket.bucket_id
@@ -158,7 +158,7 @@ class B2FileList(object):
             else:
                 raise B2RequestError(decode_error(response))
         elif file_id is not None:
-            path = FileAPI.file_info
+            path = API.file_info
             params = {
                 'fileId': file_id
             }
@@ -184,7 +184,7 @@ class B2FileList(object):
         """
         if file_name[0] == '/':
             file_name = file_name[1:]
-        get_upload_url_path = BucketAPI.upload_url
+        get_upload_url_path = API.upload_url
         params = {
             'bucketId': self.bucket.bucket_id
         }
@@ -224,7 +224,7 @@ class B2FileList(object):
             part_size = self.connector.recommended_part_size
         if content_length == None:
             content_length = get_content_length(contents)
-        start_large_file_path = BucketAPI.upload_large
+        start_large_file_path = API.upload_large
         params = {
             'bucketId': self.bucket.bucket_id,
             'fileName': b2_url_encode(file_name),
@@ -233,7 +233,7 @@ class B2FileList(object):
         large_file_response = self.connector.make_request(path=start_large_file_path, method='post', params=params)
         if large_file_response.status_code == 200:
             file_id = large_file_response.json().get('fileId', None)
-            get_upload_part_url_path = BucketAPI.upload_large_part
+            get_upload_part_url_path = API.upload_large_part
             params = {
                 'fileId': file_id
             }
@@ -260,7 +260,7 @@ class B2FileList(object):
             sha_list = pool.map(upload_part_worker, enumerate(get_part_ranges(content_length, part_size), 1))
             pool.close()
             pool.join()
-            finish_large_file_path = BucketAPI.upload_large_finish
+            finish_large_file_path = API.upload_large_finish
             params = {
                 'fileId': file_id,
                 'partSha1Array': sha_list

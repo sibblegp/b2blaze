@@ -5,6 +5,7 @@ Copyright George Sibble 2018
 from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError, B2RequestError
 from ..utilities import decode_error
 from .bucket import B2Bucket
+from ..api import API
 
 
 class B2Buckets(object):
@@ -36,7 +37,7 @@ class B2Buckets(object):
         :param retrieve:
         :return:
         """
-        path = '/b2_list_buckets'
+        path = API.list_all_buckets
         response = self.connector.make_request(path=path, method='post', account_id_required=True)
         if response.status_code == 200:
             response_json = response.json()
@@ -73,7 +74,7 @@ class B2Buckets(object):
         :param configuration:
         :return:
         """
-        path = '/b2_create_bucket'
+        path = API.create_bucket
         if type(bucket_name) != str and type(bucket_name) != bytes:
             raise B2InvalidBucketName
         if type(configuration) != dict and configuration is not None:

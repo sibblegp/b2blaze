@@ -4,7 +4,7 @@ Copyright George Sibble 2018
 from io import BytesIO
 from ..utilities import b2_url_encode, b2_url_decode, decode_error
 from ..b2_exceptions import B2RequestError
-from ..api import FileAPI
+from ..api import API
 
 class B2File(object):
     """
@@ -45,7 +45,7 @@ class B2File(object):
         """ Soft-delete a file (hide it from files list, but previous versions are saved.)
         :return:
         """
-        path = FileAPI.delete
+        path = API.delete
         params = {
             'bucketId': self.parent_list.bucket.bucket_id,
             'fileName': b2_url_encode(self.file_name)
@@ -72,7 +72,7 @@ class B2File(object):
 
         :return:
         """
-        path = FileAPI.delete_version
+        path = API.delete_version
         params = {
             'fileId': self.file_id,
             'fileName': b2_url_encode(self.file_name)

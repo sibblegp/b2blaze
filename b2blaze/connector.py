@@ -8,7 +8,7 @@ from b2blaze.b2_exceptions import B2AuthorizationError, B2RequestError, B2Invali
 import sys
 from hashlib import sha1
 from b2blaze.utilities import b2_url_encode, decode_error, get_content_length, StreamWithHashProgress
-from .api import BASE_API_URL, API_VERSION, AuthAPI, FileAPI
+from .api import BASE_URL, API_VERSION, API
 
 class B2Connector(object):
     """
@@ -52,7 +52,7 @@ class B2Connector(object):
 
         :return:
         """
-        path = BASE_API_URL + AuthAPI.authorize
+        path = BASE_URL + API.authorize
 
         result = requests.get(path, auth=HTTPBasicAuth(self.key_id, self.application_key))
         if result.status_code == 200:
@@ -61,7 +61,7 @@ class B2Connector(object):
             self.account_id = result_json['accountId']
             self.auth_token = result_json['authorizationToken']
             self.api_url = result_json['apiUrl'] + API_VERSION
-            self.download_url = result_json['downloadUrl'] + API_VERSION + FileAPI.download_by_id
+            self.download_url = result_json['downloadUrl'] + API_VERSION + API.download_file_by_id
             self.recommended_part_size = result_json['recommendedPartSize']
             self.api_session = requests.Session()
             self.api_session.headers.update({
