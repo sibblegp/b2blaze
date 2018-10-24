@@ -7,6 +7,7 @@ from .b2_file import B2File
 from ..utilities import b2_url_encode, get_content_length, get_part_ranges, decode_error, RangeStream, StreamWithHashProgress
 from ..b2_exceptions import B2RequestError, B2FileNotFound
 from multiprocessing.dummy import Pool as ThreadPool
+from ..api import BucketAPI, FileAPI
 
 class B2FileList(object):
     """
@@ -36,7 +37,7 @@ class B2FileList(object):
         :param retrieve:
         :return:
         """
-        path = '/b2_list_file_names'
+        path = BucketAPI.list_files
         files = []
         new_files_to_retrieve = True
         params = {
@@ -63,6 +64,76 @@ class B2FileList(object):
         if retrieve:
             return files
 
+    def file_versions_by_id(self, file_id, file_name):
+        """ Return all the versions of all files in a given bucket. 
+            Returns dict: 
+                'file_name':        (str) Filename
+                'file_id':          (str) File ID
+        """ 
+        return self._get_file_versions(file_id, file_name)
+
+
+    def all_file_versions(self):
+        """ Return all the versions of all files in a given bucket. 
+            Returns dict: 
+                'file_names':       (list) String filenames
+                'file_versions':    (list) b2blaze File objects
+        """ 
+        return self._get_file_versions()
+
+    def _get_file_versions(self, file_id=None, file_name=None):
+        """ Internal method. Return all the versions of all files in a given bucket, or single version history.
+
+            Params:
+                file_id:            (str) File id (optional, required if requesting single file versions)
+                file_name:          (str) File id (optional, required if requesting single file versions)
+
+            Returns dict: 
+                'file_names':       (list) String filenames
+                'file_versions':    (list) b2blaze File objects
+        """ 
+
+        path = BucketAPI.list_file_versions
+        file_versions = dict()
+        file_names = []
+        new_files_to_retrieve = True
+        params = {
+            'bucketId': self.bucket.bucket_id,
+            'maxFileCount': 10000
+        }
+
+        # If specified file ID, we only want files which match
+        if file_id:
+            params['startFileId'] = file_id
+            params['startFileName'] = file_name
+            params['maxFileCount'] = 1
+
+        while new_files_to_retrieve:
+            if file_id: new_files_to_retrieve = False   # Avoid infinite loops destroying your API limit :)
+
+            response = self.connector.make_request(path=path, method='post', params=params)
+            if response.status_code == 200:
+                files_json = response.json()
+                for file_json in files_json['files']:
+                    new_file = B2File(connector=self.connector, parent_list=self, **file_json)
+                    file_name, file_id = file_json['fileName'], file_json['fileId']
+                    file_names.append(file_name)
+                    
+                    # Add file to list keyed by file_id
+                    if file_id in file_versions:
+                        file_versions[file_id].append(new_file)
+                    else:
+                        file_versions[file_id] = [new_file]
+
+                if files_json['nextFileName'] is None:
+                    new_files_to_retrieve = False
+                else:
+                    params['startFileName'] = files_json['nextFileName']
+            else:
+                raise B2RequestError(decode_error(response))
+        return {'file_names': file_names, 'file_versions': file_versions}
+
+
     def get(self, file_name=None, file_id=None):
         """
 
@@ -71,7 +142,7 @@ class B2FileList(object):
         :return:
         """
         if file_name is not None:
-            path = '/b2_list_file_names'
+            path = BucketAPI.list_files
             params = {
                 'prefix': b2_url_encode(file_name),
                 'bucketId': self.bucket.bucket_id
@@ -87,7 +158,7 @@ class B2FileList(object):
             else:
                 raise B2RequestError(decode_error(response))
         elif file_id is not None:
-            path = '/b2_get_file_info'
+            path = FileAPI.file_info
             params = {
                 'fileId': file_id
             }
@@ -113,7 +184,7 @@ class B2FileList(object):
         """
         if file_name[0] == '/':
             file_name = file_name[1:]
-        get_upload_url_path = '/b2_get_upload_url'
+        get_upload_url_path = BucketAPI.upload_url
         params = {
             'bucketId': self.bucket.bucket_id
         }
@@ -153,7 +224,7 @@ class B2FileList(object):
             part_size = self.connector.recommended_part_size
         if content_length == None:
             content_length = get_content_length(contents)
-        start_large_file_path = '/b2_start_large_file'
+        start_large_file_path = BucketAPI.upload_large
         params = {
             'bucketId': self.bucket.bucket_id,
             'fileName': b2_url_encode(file_name),
@@ -162,7 +233,7 @@ class B2FileList(object):
         large_file_response = self.connector.make_request(path=start_large_file_path, method='post', params=params)
         if large_file_response.status_code == 200:
             file_id = large_file_response.json().get('fileId', None)
-            get_upload_part_url_path = '/b2_get_upload_part_url'
+            get_upload_part_url_path = BucketAPI.upload_large_part
             params = {
                 'fileId': file_id
             }
@@ -189,7 +260,7 @@ class B2FileList(object):
             sha_list = pool.map(upload_part_worker, enumerate(get_part_ranges(content_length, part_size), 1))
             pool.close()
             pool.join()
-            finish_large_file_path = '/b2_finish_large_file'
+            finish_large_file_path = BucketAPI.upload_large_finish
             params = {
                 'fileId': file_id,
                 'partSha1Array': sha_list

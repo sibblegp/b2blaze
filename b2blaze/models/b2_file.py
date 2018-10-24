@@ -53,11 +53,19 @@ class B2File(object):
         response = self.connector.make_request(path=path, method='post', params=params)
         if response.status_code == 200:
             self.deleted = True
-            del self.parent_list._files_by_name[self.file_name]
-            del self.parent_list._files_by_id[self.file_id]
+            # Delete from parent list if exists
+            self.parent_list._files_by_name.pop(self.file_name)
+            self.parent_list._files_by_id.pop(self.file_id)
         else:
             raise B2RequestError(decode_error(response))
-            #TODO:  Raise Error
+
+    def versions(self): 
+        """ Return list of all versions of the current file. """
+        data = self.parent_list.file_versions_by_id(self.file_id, self.file_name)
+        if 'file_versions' in data:
+            return data['file_versions']
+        return None
+            
 
     def delete_version(self):
         """ Delete a file version (Does not delete entire file history: only most recent version)
@@ -70,13 +78,8 @@ class B2File(object):
             'fileName': b2_url_encode(self.file_name)
         }
         response = self.connector.make_request(path=path, method='post', params=params)
-        if response.status_code == 200:
-            self.deleted = True
-            del self.parent_list._files_by_name[self.file_name]
-            del self.parent_list._files_by_id[self.file_id]
-        else:
+        if not response.status_code == 200:
             raise B2RequestError(decode_error(response))
-            #TODO:  Raise Error
 
     def download(self):
         """
