@@ -48,7 +48,7 @@ class B2File(object):
         path = '/b2_delete_file_version'
         params = {
             'fileId': self.file_id,
-            'fileName': b2_url_encode(self.file_name)
+            'fileName': self.file_name
         }
         response = self.connector.make_request(path=path, method='post', params=params)
         if response.status_code == 200:
