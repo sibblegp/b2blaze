@@ -24,25 +24,56 @@ class B2FileList(object):
         self._files_by_name = {}
         self._files_by_id = {}
 
-    def all(self):
-        """
+    def all(self, include_hidden=False, limit=None):
+        """ Return an updated list of all files.
+            (This does not include hidden files unless include_hidden flag set to True)
 
-        :return:
-        """
-        return self._update_files_list(retrieve=True)
+            Parameters:
+                include_hidden:         (bool) Include hidden files
+                limit:                  (int)  Limit number of file results
 
-    def _update_files_list(self, retrieve=False):
         """
+        if not include_hidden:
+            return self._update_files_list(retrieve=True, limit=limit)
+        else:
+            results = self.all_file_versions(limit=limit)
+            versions = results['file_versions']
+            file_ids = results['file_ids']
+            if versions:
+                # Return only the first file from a given file with multiple versions
+                files = [versions[f][0] for f in file_ids]
+                return files
+        return []   # Return empty set on no results
 
-        :param retrieve:
-        :return:
+    def delete_all(self, confirm=True):
+        """ Delete all files in the bucket. 
+            Parameters:
+                confirm:    (bool)  Safety check. Confirm deletion
+        """ 
+        if not confirm:
+            raise Exception('This will delete all files! Pass confirm=True')
+        
+        all_files = self.all(include_hidden=True)
+        try:
+            for f in all_files:
+                f.delete_all_versions(confirm=True)
+        except Exception as E:
+            raise B2RequestError(decode_error(E))
+        return []
+
+        
+    def _update_files_list(self, retrieve=False, limit=None):
+        """ Retrieve list of all files in bucket 
+            Parameters:
+                limit:      (int)  Max number of file results, default 10000
+                retrieve:   (bool) Refresh local store. (default: false)
         """
         path = API.list_all_files
         files = []
         new_files_to_retrieve = True
         params = {
             'bucketId': self.bucket.bucket_id,
-            'maxFileCount': 10000
+            'maxFileCount': limit or 10000
         }
         while new_files_to_retrieve:
             response = self.connector.make_request(path=path, method='post', params=params)
@@ -64,60 +95,88 @@ class B2FileList(object):
         if retrieve:
             return files
 
-    def file_versions_by_id(self, file_id, file_name):
-        """ Return all the versions of all files in a given bucket. 
-            Returns dict: 
-                'file_name':        (str) Filename
-                'file_id':          (str) File ID
-        """ 
-        return self._get_file_versions(file_id, file_name)
+
+    def get(self, file_name=None, file_id=None):
+        """ Get a file by file name or id.
+            Required:
+                file_name or file_id
+
+            Parameters:
+                file_name:          (str) File name 
+                file_id:            (str) File ID 
+        """
+        if file_name:
+            file = self._get_by_name(file_name)
+
+        elif file_id:
+            file = self._get_by_id(file_id)
+        else:
+            raise ValueError('file_name or file_id must be passed')
+        
+        return file
 
 
-    def all_file_versions(self):
-        """ Return all the versions of all files in a given bucket. 
-            Returns dict: 
-                'file_names':       (list) String filenames
-                'file_versions':    (list) b2blaze File objects
-        """ 
-        return self._get_file_versions()
-
-    def _get_file_versions(self, file_id=None, file_name=None):
-        """ Internal method. Return all the versions of all files in a given bucket, or single version history.
+    def get_versions(self, file_name=None, file_id=None, limit=None):
+        """ Return list of all the versions of one file in current bucket. 
+            Required:
+                file_id or file_name   (either)
 
             Params:
-                file_id:            (str) File id (optional, required if requesting single file versions)
-                file_name:          (str) File id (optional, required if requesting single file versions)
+                file_id:            (str) File id
+                file_name:          (str) File id
+                limit:              (int) Limit number of results returned (optional)
+
+            Returns:
+                file_versions       (list) B2FileObject of all file versions
+        """ 
+        if file_name:
+            file = self.get(file_name)
+
+        elif file_id:
+            file = self.get(file_id=file_id)
+        else:
+            raise ValueError('Either file_id or file_name required for get_versions')
+        return file.get_versions()
+        
+
+    def all_file_versions(self, limit=None):
+        """ Return all the versions of all files in a given bucket.
+
+            Params:
+                limit:              (int) Limit number of results returned (optional). Defaults to 10000
 
             Returns dict: 
                 'file_names':       (list) String filenames
-                'file_versions':    (list) b2blaze File objects
+                'file_ids':         (list) File IDs
+                'file_versions':    (dict) b2blaze File objects, keyed by file name
         """ 
 
         path = API.list_file_versions
         file_versions = dict()
         file_names = []
+        file_ids = []
         new_files_to_retrieve = True
         params = {
             'bucketId': self.bucket.bucket_id,
             'maxFileCount': 10000
         }
 
-        # If specified file ID, we only want files which match
-        if file_id:
-            params['startFileId'] = file_id
-            params['startFileName'] = file_name
-            params['maxFileCount'] = 1
+        # Limit files
+        if limit:
+            params['maxFileCount'] = limit
 
         while new_files_to_retrieve:
-            if file_id: new_files_to_retrieve = False   # Avoid infinite loops destroying your API limit :)
 
             response = self.connector.make_request(path=path, method='post', params=params)
             if response.status_code == 200:
                 files_json = response.json()
                 for file_json in files_json['files']:
                     new_file = B2File(connector=self.connector, parent_list=self, **file_json)
+
+                    # Append file_id, file_name to lists
                     file_name, file_id = file_json['fileName'], file_json['fileId']
                     file_names.append(file_name)
+                    file_ids.append(file_id)
                     
                     # Add file to list keyed by file_id
                     if file_id in file_versions:
@@ -131,46 +190,40 @@ class B2FileList(object):
                     params['startFileName'] = files_json['nextFileName']
             else:
                 raise B2RequestError(decode_error(response))
-        return {'file_names': file_names, 'file_versions': file_versions}
+        return {'file_names': file_names, 'file_versions': file_versions, 'file_ids': file_ids}
 
 
-    def get(self, file_name=None, file_id=None):
-        """
+    def _get_by_name(self, file_name):
+        """ Internal method, return file by file name """ 
+        path = API.list_all_files
+        params = {
+            'prefix': b2_url_encode(file_name),
+            'bucketId': self.bucket.bucket_id
+        }
 
-        :param file_name:
-        :param file_id:
-        :return:
-        """
-        if file_name is not None:
-            path = API.list_all_files
-            params = {
-                'prefix': b2_url_encode(file_name),
-                'bucketId': self.bucket.bucket_id
-            }
-
-            response = self.connector.make_request(path, method='post', params=params)
-            if response.status_code == 200:
-                file_json = response.json()
-                if len(file_json['files']) > 0:
-                    return B2File(connector=self.connector, parent_list=self, **file_json['files'][0])
-                else:
-                    raise B2FileNotFound('fileName - ' + file_name)
+        response = self.connector.make_request(path, method='post', params=params)
+        if response.status_code == 200:
+            file_json = response.json()
+            if len(file_json['files']) > 0:
+                return B2File(connector=self.connector, parent_list=self, **file_json['files'][0])
             else:
-                raise B2RequestError(decode_error(response))
-        elif file_id is not None:
-            path = API.file_info
-            params = {
-                'fileId': file_id
-            }
-            response = self.connector.make_request(path, method='post', params=params)
-            if response.status_code == 200:
-                file_json = response.json()
-                return B2File(connector=self.connector, parent_list=self, **file_json)
-            else:
-                raise B2RequestError(decode_error(response))
+                raise B2FileNotFound('fileName - ' + file_name)
         else:
-            raise ValueError('file_name or file_id must be passed')
+            raise B2RequestError(decode_error(response))
 
+    def _get_by_id(self, file_id):
+        """ Internal method, return file by file id """ 
+        path = API.file_info
+        params = {
+            'fileId': file_id
+        }
+        response = self.connector.make_request(path, method='post', params=params)
+        if response.status_code == 200:
+            file_json = response.json()
+            return B2File(connector=self.connector, parent_list=self, **file_json)
+        else:
+            raise B2RequestError(decode_error(response))
+            
 
     def upload(self, contents, file_name, mime_content_type=None, content_length=None, progress_listener=None):
         """

@@ -173,10 +173,21 @@ This deletes a single version of a file. (See the [docs on File Versions](https:
 #### Hide (aka "Soft-delete") a file
 
 ```python
-file.delete()
+file.hide()
 ```
 
 This hides a file (aka "soft-delete") so that downloading by name will not find the file, but previous versions of the file are still stored. (See the [docs on Hiding file](https://www.backblaze.com/b2/docs/b2_hide_file.html) at Backblaze for details)
+
+## Testing
+
+Unit testing with pytest
+Before running, you must set the environment variables: `B2_KEY_ID` and `B2_APPLICATION_KEY`
+
+** Run tests **
+
+``` bash
+python3 ./tests.py
+```
 
 
 ## LICENSE

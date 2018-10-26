@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo Building and installing $(pwd)
 
 echo "Clean build..."
@@ -9,5 +8,6 @@ echo "Build..."
 /usr/bin/python3 setup.py build && echo -e "OK\n"
 
 echo "Install" 
+sudo echo "Enter sudo password for install"
 sudo -H /usr/bin/python3 setup.py install && echo -e "OK\n"
 

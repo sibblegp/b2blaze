@@ -37,15 +37,23 @@ class B2Bucket(object):
         self.parent_list = parent_list
         self.deleted = False
 
-    def delete(self):
-        """
+    def delete(self, delete_files=False, confirm_non_empty=False):
+        """ Delete a bucket.
 
-        :return:
+        Params:
+            delete_files:           (bool)  Delete all files first.
+            confirm_non_empty:      (bool)  Confirm deleting on bucket not empty.
         """
         path = API.delete_bucket
-        files = self.files.all()
-        for file in files:
-            file.delete()
+        files = self.files.all(include_hidden=True)
+        if delete_files:
+            if not confirm_non_empty:
+                raise Exception('Bucket is not empty! Must confirm deletion of all files with confirm_non_empty=True')
+            else:
+                print("Deleting all files from bucket. Beware API limits!")
+                self.files.delete_all(confirm=True)
+            
+
         params = {
             'bucketId': self.bucket_id
         }
@@ -63,8 +71,5 @@ class B2Bucket(object):
 
     @property
     def files(self):
-        """
-
-        :return:
-        """
+        """ List of files in the bucket. B2FileList instance. """
         return B2FileList(connector=self.connector, bucket=self)
