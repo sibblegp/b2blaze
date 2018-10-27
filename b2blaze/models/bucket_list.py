@@ -2,8 +2,7 @@
 Copyright George Sibble 2018
 """
 
-from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError, B2RequestError
-from ..utilities import decode_error
+from ..b2_exceptions import B2Exception, B2InvalidBucketName, B2InvalidBucketConfiguration
 from .bucket import B2Bucket
 from ..api import API
 
@@ -52,7 +51,7 @@ class B2Buckets(object):
             if retrieve:
                 return buckets
         else:
-            raise B2RequestError(decode_error(response))
+            raise B2Exception.parse(response)
 
     def get(self, bucket_name=None, bucket_id=None):
         """
@@ -76,7 +75,7 @@ class B2Buckets(object):
         """
         path = API.create_bucket
         if type(bucket_name) != str and type(bucket_name) != bytes:
-            raise B2InvalidBucketName
+            raise B2InvalidBucketName("Bucket name must be alphanumeric or '-")
         if type(configuration) != dict and configuration is not None:
             raise B2InvalidBucketConfiguration
         params = {
@@ -94,4 +93,4 @@ class B2Buckets(object):
             self._buckets_by_id[bucket_json['bucketId']] = new_bucket
             return new_bucket
         else:
-            raise B2RequestError(decode_error(response))
+            raise B2Exception.parse(response)

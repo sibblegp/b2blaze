@@ -3,7 +3,7 @@ Copyright George Sibble 2018
 """
 from io import BytesIO
 from ..utilities import b2_url_encode, b2_url_decode, decode_error
-from ..b2_exceptions import B2RequestError
+from ..b2_exceptions import B2Exception
 from ..api import API
 
 class B2File(object):
@@ -67,7 +67,7 @@ class B2File(object):
                 new_file = B2File(connector=self.connector, parent_list=self, **file_json)
                 file_versions.append(new_file)
         else:
-            raise B2RequestError(decode_error(response))
+            raise B2Exception.parse(response)
         return file_versions
         
 
@@ -85,7 +85,7 @@ class B2File(object):
             self.parent_list._files_by_name.pop(self.file_name)
             self.parent_list._files_by_id.pop(self.file_id)
         else:
-            raise B2RequestError(decode_error(response))
+            raise B2Exception.parse(response)
 
 
     def delete_all_versions(self, confirm=False):
@@ -129,7 +129,7 @@ class B2File(object):
         }
         response = self.connector.make_request(path=path, method='post', params=params)
         if not response.status_code == 200:
-            raise B2RequestError(decode_error(response))
+            raise B2Exception.parse(response)
         self.deleted = True
 
 
@@ -139,7 +139,7 @@ class B2File(object):
         if response.status_code == 200:
             return BytesIO(response.content)
         else:
-            raise B2RequestError(decode_error(response))
+            raise B2Exception.parse(response)
 
     @property
     def url(self):

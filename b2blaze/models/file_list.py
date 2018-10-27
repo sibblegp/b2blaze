@@ -2,10 +2,9 @@
 Copyright George Sibble 2018
 """
 
-from ..b2_exceptions import B2InvalidBucketName, B2InvalidBucketConfiguration, B2BucketCreationError
 from .b2_file import B2File
 from ..utilities import b2_url_encode, get_content_length, get_part_ranges, decode_error, RangeStream, StreamWithHashProgress
-from ..b2_exceptions import B2RequestError, B2FileNotFound
+from ..b2_exceptions import B2Exception
 from multiprocessing.dummy import Pool as ThreadPool
 from ..api import API
 
@@ -58,7 +57,7 @@ class B2FileList(object):
             for f in all_files:
                 f.delete_all_versions(confirm=True)
         except Exception as E:
-            raise B2RequestError(decode_error(E))
+            raise B2Exception.parse(E)
         return []
 
         
@@ -91,7 +90,7 @@ class B2FileList(object):
                 else:
                     params['startFileName'] = files_json['nextFileName']
             else:
-                raise B2RequestError(decode_error(response))
+                raise B2Exception.parse(response)
         if retrieve:
             return files
 
@@ -189,7 +188,7 @@ class B2FileList(object):
                 else:
                     params['startFileName'] = files_json['nextFileName']
             else:
-                raise B2RequestError(decode_error(response))
+                raise B2Exception.parse(response)
         return {'file_names': file_names, 'file_versions': file_versions, 'file_ids': file_ids}
 
 
@@ -202,14 +201,11 @@ class B2FileList(object):
         }
 
         response = self.connector.make_request(path, method='post', params=params)
-        if response.status_code == 200:
-            file_json = response.json()
-            if len(file_json['files']) > 0:
-                return B2File(connector=self.connector, parent_list=self, **file_json['files'][0])
-            else:
-                raise B2FileNotFound('fileName - ' + file_name)
+        file_json = response.json()
+        if response.status_code == 200 and len(file_json['files']) > 0:
+            return B2File(connector=self.connector, parent_list=self, **file_json['files'][0])
         else:
-            raise B2RequestError(decode_error(response))
+            raise B2Exception.parse(response)
 
     def _get_by_id(self, file_id):
         """ Internal method, return file by file id """ 
@@ -222,7 +218,7 @@ class B2FileList(object):
             file_json = response.json()
             return B2File(connector=self.connector, parent_list=self, **file_json)
         else:
-            raise B2RequestError(decode_error(response))
+            raise B2Exception.parse(response)
             
 
     def upload(self, contents, file_name, mime_content_type=None, content_length=None, progress_listener=None):
@@ -254,9 +250,9 @@ class B2FileList(object):
                 self._update_files_list()
                 return new_file
             else:
-                raise B2RequestError(decode_error(upload_response))
+                raise B2Exception.parse(upload_response)
         else:
-            raise B2RequestError(decode_error(upload_url_response))
+            raise B2Exception.parse(upload_url_response)
 
     def upload_large_file(self, contents, file_name, part_size=None, num_threads=4,
                           mime_content_type=None, content_length=None, progress_listener=None):
@@ -307,9 +303,9 @@ class B2FileList(object):
                         if upload_part_response.status_code == 200:
                             return upload_part_response.json().get('contentSha1', None)
                         else:
-                            raise B2RequestError(decode_error(upload_part_response))
+                            raise B2Exception.parse(upload_part_response)
                     else:
-                        raise B2RequestError(decode_error(upload_part_url_response))
+                        raise B2Exception.parse(upload_part_url_response)
             sha_list = pool.map(upload_part_worker, enumerate(get_part_ranges(content_length, part_size), 1))
             pool.close()
             pool.join()
@@ -323,6 +319,6 @@ class B2FileList(object):
                 new_file = B2File(connector=self.connector, parent_list=self, **finish_large_file_response.json())
                 return new_file
             else:
-                raise B2RequestError(decode_error(finish_large_file_response))
+                raise B2Exception.parse(finish_large_file_response)
         else:
-            raise B2RequestError(decode_error(large_file_response))
+            raise B2Exception.parse(large_file_response)

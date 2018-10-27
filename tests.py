@@ -6,7 +6,7 @@ import sure
 from sure import expect
 from datetime import datetime
 import pytest
-from b2blaze.b2_exceptions import B2RequestError, B2FileNotFound
+from b2blaze.b2_exceptions import B2Exception, B2RequestError
 
 class TestB2(object):
     """ Tests for the b2blaze library """
@@ -184,10 +184,11 @@ class TestB2(object):
 
 
     @pytest.mark.files
+    @pytest.mark.b2errors
     def test_get_file_doesnt_exist(self):
-        """ Get file which doens't exist should raise B2FileNotFound """
+        """ Get file which doens't exist should raise B2RequestError """
         bucket = self.getbucket()
-        with pytest.raises(B2FileNotFound):
+        with pytest.raises(B2RequestError):
             file = bucket.files.get(file_name='nope.txt')
         with pytest.raises(B2RequestError):
             file2 = bucket.files.get(file_id='abcd')
@@ -216,6 +217,7 @@ class TestB2(object):
 
 
     @pytest.mark.files
+    @pytest.mark.b2errors
     def test_hide_file(self): 
         """ Should create + upload, then hide / soft-delete a file by name.
             File should no longer be returned when searched by name in bucket.
@@ -229,7 +231,7 @@ class TestB2(object):
         upload.hide()
 
         # Refresh bucket; getting the the file should fail
-        with pytest.raises(B2FileNotFound):
+        with pytest.raises(B2RequestError):
             bucket = self.getbucket()
             file = bucket.files.get(file_name=upload.file_name)
             assert not file, 'Deleted file should not be in files list'
@@ -283,7 +285,7 @@ class TestB2(object):
         file.delete_all_versions(confirm=True)
 
         # Refresh bucket; getting the the file should fail
-        with pytest.raises(B2FileNotFound):
+        with pytest.raises(B2RequestError):
             bucket = self.getbucket()
             file2 = bucket.files.get(file_name=file.file_name)
             assert not file2, 'Deleted all file versions, file should not exist'

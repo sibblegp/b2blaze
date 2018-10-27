@@ -2,8 +2,7 @@
 Copyright George Sibble 2018
 """
 from .file_list import B2FileList
-from ..b2_exceptions import B2RequestError
-from ..utilities import decode_error
+from ..b2_exceptions import B2Exception
 from ..api import API
 
 class B2Bucket(object):
@@ -48,7 +47,7 @@ class B2Bucket(object):
         files = self.files.all(include_hidden=True)
         if delete_files:
             if not confirm_non_empty:
-                raise Exception('Bucket is not empty! Must confirm deletion of all files with confirm_non_empty=True')
+                raise B2Exception('Bucket is not empty! Must confirm deletion of all files with confirm_non_empty=True')
             else:
                 print("Deleting all files from bucket. Beware API limits!")
                 self.files.delete_all(confirm=True)
@@ -63,7 +62,7 @@ class B2Bucket(object):
             del self.parent_list._buckets_by_name[self.bucket_name]
             del self.parent_list._buckets_by_id[self.bucket_id]
         else:
-            raise B2RequestError(decode_error(response))
+            raise B2Exception.parse(response)
 
     def edit(self):
         #TODO:  Edit details
