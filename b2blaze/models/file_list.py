@@ -4,7 +4,7 @@ Copyright George Sibble 2018
 
 from .b2_file import B2File
 from ..utilities import b2_url_encode, get_content_length, get_part_ranges, decode_error, RangeStream, StreamWithHashProgress
-from ..b2_exceptions import B2Exception
+from ..b2_exceptions import B2Exception, B2FileNotFoundError
 from multiprocessing.dummy import Pool as ThreadPool
 from ..api import API
 
@@ -193,7 +193,7 @@ class B2FileList(object):
 
 
     def _get_by_name(self, file_name):
-        """ Internal method, return file by file name """ 
+        """ Internal method, return single file by file name """ 
         path = API.list_all_files
         params = {
             'prefix': b2_url_encode(file_name),
@@ -202,13 +202,17 @@ class B2FileList(object):
 
         response = self.connector.make_request(path, method='post', params=params)
         file_json = response.json()
-        if response.status_code == 200 and len(file_json['files']) > 0:
-            return B2File(connector=self.connector, parent_list=self, **file_json['files'][0])
-        else:
+
+        # Handle errors and empty files
+        if not response.status_code == 200:
             raise B2Exception.parse(response)
+        if not len(file_json['files']) > 0:
+            raise B2FileNotFoundError('Filename {} not found'.format(file_name))
+        else:
+            return B2File(connector=self.connector, parent_list=self, **file_json['files'][0])
 
     def _get_by_id(self, file_id):
-        """ Internal method, return file by file id """ 
+        """ Internal method, return single file by file id """ 
         path = API.file_info
         params = {
             'fileId': file_id

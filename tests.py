@@ -6,7 +6,7 @@ import sure
 from sure import expect
 from datetime import datetime
 import pytest
-from b2blaze.b2_exceptions import B2Exception, B2RequestError
+from b2blaze.b2_exceptions import B2Exception, B2RequestError, B2FileNotFoundError
 
 class TestB2(object):
     """ Tests for the b2blaze library """
@@ -186,9 +186,9 @@ class TestB2(object):
     @pytest.mark.files
     @pytest.mark.b2errors
     def test_get_file_doesnt_exist(self):
-        """ Get file which doens't exist should raise B2RequestError """
+        """ Get file which doesn't exist should raise B2FileNotFoundError, get by ID should raise B2RequestError """
         bucket = self.getbucket()
-        with pytest.raises(B2RequestError):
+        with pytest.raises(B2FileNotFoundError):
             file = bucket.files.get(file_name='nope.txt')
         with pytest.raises(B2RequestError):
             file2 = bucket.files.get(file_id='abcd')
@@ -231,7 +231,7 @@ class TestB2(object):
         upload.hide()
 
         # Refresh bucket; getting the the file should fail
-        with pytest.raises(B2RequestError):
+        with pytest.raises(B2FileNotFoundError):
             bucket = self.getbucket()
             file = bucket.files.get(file_name=upload.file_name)
             assert not file, 'Deleted file should not be in files list'
@@ -285,7 +285,7 @@ class TestB2(object):
         file.delete_all_versions(confirm=True)
 
         # Refresh bucket; getting the the file should fail
-        with pytest.raises(B2RequestError):
+        with pytest.raises(B2FileNotFoundError):
             bucket = self.getbucket()
             file2 = bucket.files.get(file_name=file.file_name)
             assert not file2, 'Deleted all file versions, file should not exist'

@@ -4,6 +4,7 @@ Copyright George Sibble 2018
 
 import json
 
+
 class B2ApplicationKeyNotSet(Exception):
     """ You must set the B2_KEY_ID environment variable before running the application """
     pass
@@ -20,12 +21,8 @@ class B2Exception(Exception):
     @staticmethod
     def parse(response):
         """ Parse the response error code and return the related error type. """
-        response_json = response.json()
-        message = response_json['message']
-        code = response_json['code']
-        status = int(response_json['status'])
 
-        exception_map = {
+        API_EXCEPTION_CODES = {
             400 : B2RequestError,
             401 : B2UnauthorizedError,
             403 : B2ForbiddenError,
@@ -35,13 +32,22 @@ class B2Exception(Exception):
             500 : B2InternalError,
             503 : B2ServiceUnavailableError,
         }
-
-        # Return B2Exception if unrecognized status code
-        if not status in exception_map:
-            return B2Exception('{} - {}: {}'.format(status, code, message))
         
-        ErrorClass = exception_map[status]
-        return ErrorClass('{} - {}: {}'.format(status, code, message))
+        try:
+            response_json = response.json()
+            message = response_json['message']
+            code = response_json['code']
+            status = int(response_json['status'])
+
+            # Return B2Exception if unrecognized status code
+            if not status in API_EXCEPTION_CODES:
+                return B2Exception('{} - {}: {}'.format(status, code, message))
+            
+            ErrorClass = API_EXCEPTION_CODES[status]
+            return ErrorClass('{} - {}: {}'.format(status, code, message))
+
+        except:
+            return Exception('error parsing response. status code - {} Response JSON: {}'.format(response.status_code, response_json) )
 
 class B2FileNotFoundError(Exception):
     """ 404 Not Found """
