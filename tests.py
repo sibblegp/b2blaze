@@ -324,7 +324,7 @@ class TestB2(object):
         assert len(files) > 0, 'Bucket should still contain files'
         
         # Delete all files
-        bucket.files.delete_all()
+        bucket.files.delete_all(confirm=True)
         assert len(bucket.files.all()) == 0, 'Bucket should be empty'
 
 
