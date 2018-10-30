@@ -26,7 +26,7 @@ B2FileList
 b2_exceptions.py
 - Changed API error classes to match Backblaze API docs
 - added base API exception B2Exception.
-- Handle non-200 status code responses with 'raise B2Exception.parse(response)`  <-- would be happy to think up a better way to handle this
+- Handle non-200 status code responses with 'raise B2Exception.parse(response)`
 
 tests.py
 - added and cleaned up integration tests
