@@ -2,8 +2,6 @@
 Copyright George Sibble 2018
 """
 import b2blaze.b2lib
-import sure
-from sure import expect
 from datetime import datetime
 import pytest
 from b2blaze.b2_exceptions import B2Exception, B2RequestError, B2FileNotFoundError
@@ -70,7 +68,7 @@ class TestB2(object):
     def test_get_all_buckets(self):
         """ Get buckets. Number of buckets returned should be >1 """
         buckets = self.b2.buckets.all()
-        expect(len(buckets)).should.be.greater_than(1)
+        assert len(buckets) > 1, "Number of buckets returned should be >1"
 
     @pytest.mark.bucket
     def test_get_nonexistent_bucket(self):
