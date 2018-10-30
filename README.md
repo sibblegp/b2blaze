@@ -165,7 +165,7 @@ save_file.close()
 #### Delete a file version
 
 ```python
-file.delete_version()
+file.delete()
 ```
 
 This deletes a single version of a file. (See the [docs on File Versions](https://www.backblaze.com/b2/docs/b2_delete_file_version.html) at Backblaze for explanation)

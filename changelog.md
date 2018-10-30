@@ -7,14 +7,10 @@
 Python version:
 - Python 3 required!
 
-**Breaking API changes:**
- - (B2File) delete: changed to delete_version
-
 **Nonbreaking API changes:**
 
 B2File:
 - hide added
-- delete_version added
 - delete_all_versions(confirm=False) added
 
 B2FileList

@@ -253,7 +253,7 @@ class TestB2(object):
         # Delete version
         print('test_delete_file_version: file_name', file.file_name)
         print('test_delete_file_version: file_id', file.file_id)
-        file.delete_version()
+        file.delete()
 
         # Refresh bucket; getting the the file should fail
         file2 = bucket.files.get(file_name=file.file_name)

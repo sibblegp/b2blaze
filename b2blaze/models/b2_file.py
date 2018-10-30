@@ -117,10 +117,10 @@ class B2File(object):
             print(version_count, 'file versions')
             for count, v in enumerate(versions):
                 print('deleting [{}/{}]'.format(count + 1 , version_count))
-                v.delete_version()
+                v.delete()
 
 
-    def delete_version(self):
+    def delete(self):
         """ Delete a file version (Does not delete entire file history: only most recent version) """
         path = API.delete_file_version
         params = {
