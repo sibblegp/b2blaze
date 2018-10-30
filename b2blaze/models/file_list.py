@@ -44,7 +44,7 @@ class B2FileList(object):
                 return files
         return []   # Return empty set on no results
 
-    def delete_all(self, confirm=True):
+    def delete_all(self, confirm=False):
         """ Delete all files in the bucket. 
             Parameters:
                 confirm:    (bool)  Safety check. Confirm deletion
