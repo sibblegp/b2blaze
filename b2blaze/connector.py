@@ -4,17 +4,16 @@ Copyright George Sibble 2018
 import requests
 import datetime
 from requests.auth import HTTPBasicAuth
-from b2blaze.b2_exceptions import B2AuthorizationError, B2RequestError, B2InvalidRequestType
+from b2blaze.b2_exceptions import B2Exception, B2AuthorizationError, B2InvalidRequestType
 import sys
 from hashlib import sha1
 from b2blaze.utilities import b2_url_encode, decode_error, get_content_length, StreamWithHashProgress
+from .api import BASE_URL, API_VERSION, API
 
 class B2Connector(object):
     """
 
     """
-    auth_url = 'https://api.backblazeb2.com/b2api/v1'
-
     def __init__(self, key_id, application_key):
         """
 
@@ -53,22 +52,23 @@ class B2Connector(object):
 
         :return:
         """
-        path = self.auth_url + '/b2_authorize_account'
+        path = BASE_URL + API.authorize
+
         result = requests.get(path, auth=HTTPBasicAuth(self.key_id, self.application_key))
         if result.status_code == 200:
             result_json = result.json()
             self.authorized_at = datetime.datetime.utcnow()
             self.account_id = result_json['accountId']
             self.auth_token = result_json['authorizationToken']
-            self.api_url = result_json['apiUrl'] + '/b2api/v1'
-            self.download_url = result_json['downloadUrl'] + '/file/'
+            self.api_url = result_json['apiUrl'] + API_VERSION
+            self.download_url = result_json['downloadUrl'] + API_VERSION + API.download_file_by_id
             self.recommended_part_size = result_json['recommendedPartSize']
             self.api_session = requests.Session()
             self.api_session.headers.update({
                 'Authorization': self.auth_token
             })
         else:
-            raise B2AuthorizationError(decode_error(result))
+            raise B2Exception.parse(result)
 
 
     def make_request(self, path, method='get', headers={}, params={}, account_id_required=False):
@@ -164,7 +164,7 @@ class B2Connector(object):
         :param file_id:
         :return:
         """
-        download_by_id_url = self.download_url.split('file/')[0] + '/b2api/v1/b2_download_file_by_id'
+        url = self.download_url
         params = {
             'fileId': file_id
         }
@@ -172,5 +172,5 @@ class B2Connector(object):
             'Authorization': self.auth_token
         }
 
-        return requests.get(download_by_id_url, headers=headers, params=params)
+        return requests.get(url, headers=headers, params=params)
 
