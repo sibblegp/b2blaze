@@ -81,9 +81,6 @@ class B2File(object):
         response = self.connector.make_request(path=path, method='post', params=params)
         if response.status_code == 200:
             self.deleted = True
-            # Delete from parent list if exists
-            self.parent_list._files_by_name.pop(self.file_name)
-            self.parent_list._files_by_id.pop(self.file_id)
         else:
             raise B2Exception.parse(response)
 
