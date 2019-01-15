@@ -29,6 +29,7 @@ class B2Connector(object):
         self.download_url = None
         self.recommended_part_size = None
         self.api_session = None
+        self.bucket_id = None
         #TODO:  Part Size
         self._authorize()
 
@@ -63,6 +64,8 @@ class B2Connector(object):
             self.api_url = result_json['apiUrl'] + API_VERSION
             self.download_url = result_json['downloadUrl'] + API_VERSION + API.download_file_by_id
             self.recommended_part_size = result_json['recommendedPartSize']
+            if result_json.get('allowed'):
+                self.bucket_id = result_json['allowed'].get('bucketId', None)
             self.api_session = requests.Session()
             self.api_session.headers.update({
                 'Authorization': self.auth_token

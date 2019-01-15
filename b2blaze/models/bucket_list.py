@@ -14,12 +14,14 @@ class B2Buckets(object):
     public = 'allPublic'
     private = 'allPrivate'
 
-    def __init__(self, connector):
+    def __init__(self, connector, single_bucket=None):
         """
 
         :param connector:
+        :param str single_bucket: If any, the ID of the single bucket that we can list.
         """
         self.connector = connector
+        self._single_bucket = single_bucket
         self._buckets_by_name = {}
         self._buckets_by_id = {}
 
@@ -37,7 +39,10 @@ class B2Buckets(object):
         :return:
         """
         path = API.list_all_buckets
-        response = self.connector.make_request(path=path, method='post', account_id_required=True)
+        params = {}
+        if self._single_bucket:
+            params['bucketId'] = self._single_bucket
+        response = self.connector.make_request(path=path, method='post', account_id_required=True, params=params)
         if response.status_code == 200:
             response_json = response.json()
             buckets = []
