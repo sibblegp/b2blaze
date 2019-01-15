@@ -34,5 +34,5 @@ class B2(object):
 
         :return:
         """
-        return B2Buckets(connector=self.connector)
+        return B2Buckets(connector=self.connector, single_bucket=self.connector.bucket_id)
 
