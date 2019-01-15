@@ -20,8 +20,6 @@ class B2FileList(object):
         """
         self.connector = connector
         self.bucket = bucket
-        self._files_by_name = {}
-        self._files_by_id = {}
 
     def all(self, include_hidden=False, limit=None):
         """ Return an updated list of all files.
@@ -33,7 +31,7 @@ class B2FileList(object):
 
         """
         if not include_hidden:
-            return self._update_files_list(retrieve=True, limit=limit)
+            return self._retrieve_file_list(limit=limit)
         else:
             results = self.all_file_versions(limit=limit)
             versions = results['file_versions']
@@ -61,38 +59,32 @@ class B2FileList(object):
         return []
 
         
-    def _update_files_list(self, retrieve=False, limit=None):
+    def _retrieve_file_list(self, limit=10000):
         """ Retrieve list of all files in bucket 
             Parameters:
                 limit:      (int)  Max number of file results, default 10000
-                retrieve:   (bool) Refresh local store. (default: false)
         """
         path = API.list_all_files
         files = []
         new_files_to_retrieve = True
         params = {
             'bucketId': self.bucket.bucket_id,
-            'maxFileCount': limit or 10000
+            'maxFileCount': limit,
         }
         while new_files_to_retrieve:
             response = self.connector.make_request(path=path, method='post', params=params)
             if response.status_code == 200:
                 files_json = response.json()
-                self._files_by_name = {}
-                self._files_by_id = {}
                 for file_json in files_json['files']:
                     new_file = B2File(connector=self.connector, parent_list=self, **file_json)
                     files.append(new_file)
-                    self._files_by_name[file_json['fileName']] = new_file
-                    self._files_by_id[file_json['fileId']] = new_file
                 if files_json['nextFileName'] is None:
                     new_files_to_retrieve = False
                 else:
                     params['startFileName'] = files_json['nextFileName']
             else:
                 raise B2Exception.parse(response)
-        if retrieve:
-            return files
+        return files
 
 
     def get(self, file_name=None, file_id=None):
@@ -250,8 +242,6 @@ class B2FileList(object):
                                                          content_length=content_length, progress_listener=progress_listener)
             if upload_response.status_code == 200:
                 new_file = B2File(connector=self.connector, parent_list=self, **upload_response.json())
-                # Update file list after upload
-                self._update_files_list()
                 return new_file
             else:
                 raise B2Exception.parse(upload_response)
