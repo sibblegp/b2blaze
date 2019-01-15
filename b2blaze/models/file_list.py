@@ -247,7 +247,8 @@ class B2FileList(object):
             auth_token = upload_url_response.json().get('authorizationToken', None)
             upload_response = self.connector.upload_file(file_contents=contents, file_name=file_name,
                                                          upload_url=upload_url, auth_token=auth_token,
-                                                         content_length=content_length, progress_listener=progress_listener)
+                                                         content_length=content_length, progress_listener=progress_listener,
+                                                         mime_content_type=mime_content_type)
             if upload_response.status_code == 200:
                 new_file = B2File(connector=self.connector, parent_list=self, **upload_response.json())
                 # Update file list after upload
