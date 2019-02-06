@@ -28,7 +28,6 @@ class B2Connector(object):
         self.api_url = None
         self.download_url = None
         self.recommended_part_size = None
-        self.api_session = None
         #TODO:  Part Size
         self._authorize()
 
@@ -63,10 +62,6 @@ class B2Connector(object):
             self.api_url = result_json['apiUrl'] + API_VERSION
             self.download_url = result_json['downloadUrl'] + API_VERSION + API.download_file_by_id
             self.recommended_part_size = result_json['recommendedPartSize']
-            self.api_session = requests.Session()
-            self.api_session.headers.update({
-                'Authorization': self.auth_token
-            })
         else:
             raise B2Exception.parse(result)
 
@@ -81,10 +76,12 @@ class B2Connector(object):
         :param account_id_required:
         :return:
         """
+        headers.update({'Authorization': self.auth_token})
+
         if self.authorized:
             url = self.api_url + path
             if method == 'get':
-                return self.api_session.get(url, headers=headers)
+                return requests.get(url, headers=headers)
             elif method == 'post':
                 if account_id_required:
                     params.update({
@@ -93,7 +90,7 @@ class B2Connector(object):
                 headers.update({
                     'Content-Type': 'application/json'
                 })
-                return self.api_session.post(url, json=params, headers=headers)
+                return requests.post(url, json=params, headers=headers)
             else:
                 raise B2InvalidRequestType('Request type must be get or post')
         else:
