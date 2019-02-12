@@ -28,7 +28,7 @@ from .api import BASE_URL, API_VERSION, API
 def requests_retry_session(
     retries=3,
     backoff_factor=0.3,
-    status_forcelist=(500, 502, 504),
+    status_forcelist=(408, 500, 501, 502, 503, 504),
     session=None,
 ):
     session = session or requests.Session()
