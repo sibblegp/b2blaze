@@ -10,6 +10,8 @@ from requests.auth import HTTPBasicAuth
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
+import requests_cache
+
 from b2blaze.b2_exceptions import (
     B2Exception,
     B2AuthorizationError,
@@ -23,6 +25,10 @@ from b2blaze.utilities import (
 )
 
 from .api import BASE_URL, API_VERSION, API
+
+
+# TODO: Fix this quick hack
+requests_cache.install_cache('backblaze_cache', backend='redis', expire_after=180)
 
 
 def requests_retry_session(
