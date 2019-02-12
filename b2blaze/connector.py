@@ -1,14 +1,49 @@
 """
 Copyright George Sibble 2018
 """
-import requests
+
 import datetime
-from requests.auth import HTTPBasicAuth
-from b2blaze.b2_exceptions import B2Exception, B2AuthorizationError, B2InvalidRequestType
-import sys
 from hashlib import sha1
-from b2blaze.utilities import b2_url_encode, decode_error, get_content_length, StreamWithHashProgress
+
+import requests
+from requests.auth import HTTPBasicAuth
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
+
+from b2blaze.b2_exceptions import (
+    B2Exception,
+    B2AuthorizationError,
+    B2InvalidRequestType,
+)
+
+from b2blaze.utilities import (
+    b2_url_encode,
+    get_content_length,
+    StreamWithHashProgress,
+)
+
 from .api import BASE_URL, API_VERSION, API
+
+
+def requests_retry_session(
+    retries=3,
+    backoff_factor=0.3,
+    status_forcelist=(500, 502, 504),
+    session=None,
+):
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
 
 class B2Connector(object):
     """
@@ -53,7 +88,10 @@ class B2Connector(object):
         """
         path = BASE_URL + API.authorize
 
-        result = requests.get(path, auth=HTTPBasicAuth(self.key_id, self.application_key))
+        result = requests_retry_session().get(
+            path,
+            auth=HTTPBasicAuth(self.key_id, self.application_key)
+        )
         if result.status_code == 200:
             result_json = result.json()
             self.authorized_at = datetime.datetime.utcnow()
@@ -81,7 +119,7 @@ class B2Connector(object):
         if self.authorized:
             url = self.api_url + path
             if method == 'get':
-                return requests.get(url, headers=headers)
+                return requests_retry_session().get(url, headers=headers)
             elif method == 'post':
                 if account_id_required:
                     params.update({
@@ -90,14 +128,19 @@ class B2Connector(object):
                 headers.update({
                     'Content-Type': 'application/json'
                 })
-                return requests.post(url, json=params, headers=headers)
+                return requests_retry_session().post(
+                    url,
+                    json=params,
+                    headers=headers
+                )
             else:
                 raise B2InvalidRequestType('Request type must be get or post')
         else:
             raise B2AuthorizationError('Unknown Error')
 
     def upload_file(self, file_contents, file_name, upload_url, auth_token,
-                    direct=False, mime_content_type=None, content_length=None, progress_listener=None):
+                    direct=False, mime_content_type=None, content_length=None,
+                    progress_listener=None):
         """
 
         :param file_contents:
@@ -129,7 +172,7 @@ class B2Connector(object):
             'Authorization': auth_token
         }
 
-        return requests.post(upload_url, headers=headers, data=data)
+        return requests_retry_session().post(upload_url, headers=headers, data=data)
 
     def upload_part(self, file_contents, content_length, part_number, upload_url, auth_token, progress_listener=None):
         """
@@ -153,7 +196,7 @@ class B2Connector(object):
             'Authorization': auth_token
         }
 
-        return requests.post(upload_url, headers=headers, data=data)
+        return requests_retry_session().post(upload_url, headers=headers, data=data)
 
     def download_file(self, file_id):
         """
@@ -169,5 +212,5 @@ class B2Connector(object):
             'Authorization': self.auth_token
         }
 
-        return requests.get(url, headers=headers, params=params)
+        return requests_retry_session().get(url, headers=headers, params=params)
 
