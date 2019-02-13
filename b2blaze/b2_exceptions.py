@@ -2,8 +2,6 @@
 Copyright George Sibble 2018
 """
 
-import json
-
 
 class B2ApplicationKeyNotSet(Exception):
     """ You must set the B2_KEY_ID environment variable before running the application """
@@ -69,7 +67,7 @@ class B2RequestError(Exception):
 
 
 class B2UnauthorizedError(Exception):
-    """ When calling b2_authorize_account, this means that there was something wrong with the accountId/applicationKeyId or with the applicationKey that was provided. The code unauthorized means that the application key is bad. The code unsupported means that the application key is only valid in a later version of the API. 
+    """ When calling b2_authorize_account, this means that there was something wrong with the accountId/applicationKeyId or with the applicationKey that was provided. The code unauthorized means that the application key is bad. The code unsupported means that the application key is only valid in a later version of the API.
 
     The code unauthorized means that the auth token is valid, but does not allow you to make this call with these parameters. When the code is either bad_auth_token or expired_auth_token you should call b2_authorize_account again to get a new auth token.
     """
@@ -78,7 +76,7 @@ class B2UnauthorizedError(Exception):
 
 
 class B2ForbiddenError(Exception):
-    """ You have a reached a storage cap limit, or account access may be impacted in some other way; see the human-readable message. 
+    """ You have a reached a storage cap limit, or account access may be impacted in some other way; see the human-readable message.
     """
 
     pass
@@ -109,7 +107,7 @@ class B2InternalError(Exception):
 
 
 class B2ServiceUnavailableError(Exception):
-    """ The service is temporarily unavailable. The human-readable message identifies the nature of the issue, in general we recommend retrying with an exponential backoff between retries in response to this error. 
+    """ The service is temporarily unavailable. The human-readable message identifies the nature of the issue, in general we recommend retrying with an exponential backoff between retries in response to this error.
     """
 
     pass

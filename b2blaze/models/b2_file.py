@@ -2,7 +2,8 @@
 Copyright George Sibble 2018
 """
 from io import BytesIO
-from ..utilities import b2_url_encode, b2_url_decode, decode_error
+
+from ..utilities import b2_url_encode
 from ..b2_exceptions import B2Exception
 from ..api import API
 
@@ -104,14 +105,14 @@ class B2File(object):
             raise B2Exception.parse(response)
 
     def delete_all_versions(self, confirm=False):
-        """ Delete completely all versions of a file. 
+        """ Delete completely all versions of a file.
             ** NOTE THAT THIS CAN BE VERY EXPENSIVE IN TERMS OF YOUR API LIMITS **
-            Each call to delete_all_versions will result in multiple API calls: 
+            Each call to delete_all_versions will result in multiple API calls:
                 One API call per file version to be deleted, per file.
             1. Call '/b2_list_file_versions' to get file versions
             2. Call '/b2_delete_file_version' once for each version of the file
 
-            This means: if you have 10 files with 50 versions each and call delete_all_versions, 
+            This means: if you have 10 files with 50 versions each and call delete_all_versions,
             you will spend (10 + 1) x 50 == 550 API calls against your BackBlaze b2 API limit.
 
             ** You have been warned! BE CAREFUL!!! **

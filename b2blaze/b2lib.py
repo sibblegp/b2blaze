@@ -2,6 +2,7 @@
 Copyright George Sibble 2018
 """
 import os
+
 from b2blaze.b2_exceptions import B2ApplicationKeyNotSet, B2KeyIDNotSet
 from b2blaze.connector import B2Connector
 from b2blaze.models.bucket_list import B2Buckets

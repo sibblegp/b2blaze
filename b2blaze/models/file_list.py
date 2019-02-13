@@ -7,10 +7,9 @@ from ..utilities import (
     b2_url_encode,
     get_content_length,
     get_part_ranges,
-    decode_error,
     RangeStream,
-    StreamWithHashProgress,
 )
+
 from ..b2_exceptions import B2Exception, B2FileNotFoundError
 from multiprocessing.dummy import Pool as ThreadPool
 from ..api import API
@@ -54,7 +53,7 @@ class B2FileList(object):
         return []  # Return empty set on no results
 
     def delete_all(self, confirm=False):
-        """ Delete all files in the bucket. 
+        """ Delete all files in the bucket.
             Parameters:
                 confirm:    (bool)  Safety check. Confirm deletion
         """
@@ -70,7 +69,7 @@ class B2FileList(object):
         return []
 
     def _update_files_list(self, retrieve=False, limit=None):
-        """ Retrieve list of all files in bucket 
+        """ Retrieve list of all files in bucket
             Parameters:
                 limit:      (int)  Max number of file results, default 10000
                 retrieve:   (bool) Refresh local store. (default: false)
@@ -109,8 +108,8 @@ class B2FileList(object):
                 file_name or file_id
 
             Parameters:
-                file_name:          (str) File name 
-                file_id:            (str) File ID 
+                file_name:          (str) File name
+                file_id:            (str) File ID
         """
         if file_name:
             file = self._get_by_name(file_name)
@@ -123,7 +122,7 @@ class B2FileList(object):
         return file
 
     def get_versions(self, file_name=None, file_id=None, limit=None):
-        """ Return list of all the versions of one file in current bucket. 
+        """ Return list of all the versions of one file in current bucket.
             Required:
                 file_id or file_name   (either)
 
@@ -150,7 +149,7 @@ class B2FileList(object):
             Params:
                 limit:              (int) Limit number of results returned (optional). Defaults to 10000
 
-            Returns dict: 
+            Returns dict:
                 'file_names':       (list) String filenames
                 'file_ids':         (list) File IDs
                 'file_versions':    (dict) b2blaze File objects, keyed by file name
