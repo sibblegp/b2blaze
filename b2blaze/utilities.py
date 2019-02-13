@@ -19,24 +19,27 @@ except ImportError:
 
 
 def b2_url_encode(s):
-    return quote(s.encode('utf-8'))
+    return quote(s.encode("utf-8"))
 
 
 def b2_url_decode(s):
-    return unquote_plus(str(s)).decode('utf-8')
+    return unquote_plus(str(s)).decode("utf-8")
+
 
 def get_content_length(file):
-    if hasattr(file, 'name') and os.path.isfile(file.name):
+    if hasattr(file, "name") and os.path.isfile(file.name):
         return os.path.getsize(file.name)
     else:
-        raise Exception('Content-Length could not be automatically determined.')
+        raise Exception("Content-Length could not be automatically determined.")
+
 
 def decode_error(response):
     try:
         response_json = response.json()
-        return str(response.status_code) + ' - ' + str(response_json)
+        return str(response.status_code) + " - " + str(response_json)
     except ValueError:
-        raise ValueError(str(response.status_code) + ' - Invalid JSON Response')
+        raise ValueError(str(response.status_code) + " - Invalid JSON Response")
+
 
 def get_part_ranges(content_length, part_size):
     parts = []
@@ -48,6 +51,7 @@ def get_part_ranges(content_length, part_size):
         next_offest += part_size
         content_length -= part_size
     return parts
+
 
 class RangeStream:
     """
@@ -86,6 +90,7 @@ class RangeStream:
         self.remaining -= len(data)
         return data
 
+
 class StreamWithHashProgress:
     """
     Wraps a file-like object (read-only), hashes on-the-fly, and
@@ -113,7 +118,7 @@ class StreamWithHashProgress:
         return self.stream.__exit__(exc_type, exc_val, exc_tb)
 
     def read(self, size=None):
-        data = b''
+        data = b""
         if self.hash is None:
             # Read some bytes from stream
             if size is None:
@@ -136,7 +141,7 @@ class StreamWithHashProgress:
         else:
             # The end of stream was reached, return hash now
             size = size or len(self.hash)
-            data += str.encode(self.hash[self.hash_read:self.hash_read + size])
+            data += str.encode(self.hash[self.hash_read : self.hash_read + size])
             self.hash_read += size
 
         return data

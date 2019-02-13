@@ -2,7 +2,11 @@
 Copyright George Sibble 2018
 """
 
-from ..b2_exceptions import B2Exception, B2InvalidBucketName, B2InvalidBucketConfiguration
+from ..b2_exceptions import (
+    B2Exception,
+    B2InvalidBucketName,
+    B2InvalidBucketConfiguration,
+)
 from .bucket import B2Bucket
 from ..api import API
 
@@ -11,8 +15,9 @@ class B2Buckets(object):
     """
 
     """
-    public = 'allPublic'
-    private = 'allPrivate'
+
+    public = "allPublic"
+    private = "allPrivate"
 
     def __init__(self, connector):
         """
@@ -37,17 +42,21 @@ class B2Buckets(object):
         :return:
         """
         path = API.list_all_buckets
-        response = self.connector.make_request(path=path, method='post', account_id_required=True)
+        response = self.connector.make_request(
+            path=path, method="post", account_id_required=True
+        )
         if response.status_code == 200:
             response_json = response.json()
             buckets = []
             self._buckets_by_name = {}
             self._buckets_by_id = {}
-            for bucket_json in response_json['buckets']:
-                new_bucket = B2Bucket(connector=self.connector, parent_list=self, **bucket_json)
+            for bucket_json in response_json["buckets"]:
+                new_bucket = B2Bucket(
+                    connector=self.connector, parent_list=self, **bucket_json
+                )
                 buckets.append(new_bucket)
-                self._buckets_by_name[bucket_json['bucketName']] = new_bucket
-                self._buckets_by_id[bucket_json['bucketId']] = new_bucket
+                self._buckets_by_name[bucket_json["bucketName"]] = new_bucket
+                self._buckets_by_id[bucket_json["bucketId"]] = new_bucket
             if retrieve:
                 return buckets
         else:
@@ -79,18 +88,22 @@ class B2Buckets(object):
         if type(configuration) != dict and configuration is not None:
             raise B2InvalidBucketConfiguration
         params = {
-            'bucketName': bucket_name,
-            'bucketType': security,
-            #TODO: bucketInfo
-            #TODO: corsRules
-            #TODO: lifeCycleRules
+            "bucketName": bucket_name,
+            "bucketType": security,
+            # TODO: bucketInfo
+            # TODO: corsRules
+            # TODO: lifeCycleRules
         }
-        response = self.connector.make_request(path=path, method='post', params=params, account_id_required=True)
+        response = self.connector.make_request(
+            path=path, method="post", params=params, account_id_required=True
+        )
         if response.status_code == 200:
             bucket_json = response.json()
-            new_bucket = B2Bucket(connector=self.connector, parent_list=self, **bucket_json)
-            self._buckets_by_name[bucket_json['bucketName']] = new_bucket
-            self._buckets_by_id[bucket_json['bucketId']] = new_bucket
+            new_bucket = B2Bucket(
+                connector=self.connector, parent_list=self, **bucket_json
+            )
+            self._buckets_by_name[bucket_json["bucketName"]] = new_bucket
+            self._buckets_by_id[bucket_json["bucketId"]] = new_bucket
             return new_bucket
         else:
             raise B2Exception.parse(response)
