@@ -23,17 +23,19 @@ class B2FileList(object):
         self._files_by_name = {}
         self._files_by_id = {}
 
-    def all(self, include_hidden=False, limit=None):
+    def all(self, include_hidden=False, limit=None, prefix="", delimiter=None):
         """ Return an updated list of all files.
             (This does not include hidden files unless include_hidden flag set to True)
 
             Parameters:
                 include_hidden:         (bool) Include hidden files
                 limit:                  (int)  Limit number of file results
+                prefix:                 (str)  Limit files to those with the given prefix (default: empty string)
+                delimiter:              (str)  Files returned will be limited to those within the top folder, or any one subfolder. (default: null)
 
         """
         if not include_hidden:
-            return self._update_files_list(retrieve=True, limit=limit)
+            return self._update_files_list(retrieve=True, limit=limit, prefix=prefix, delimiter=delimiter)
         else:
             results = self.all_file_versions(limit=limit)
             versions = results['file_versions']
@@ -61,18 +63,22 @@ class B2FileList(object):
         return []
 
         
-    def _update_files_list(self, retrieve=False, limit=None):
+    def _update_files_list(self, retrieve=False, limit=None, prefix="", delimiter=None):
         """ Retrieve list of all files in bucket 
             Parameters:
                 limit:      (int)  Max number of file results, default 10000
                 retrieve:   (bool) Refresh local store. (default: false)
+                prefix:     (str)  Limit files to those with the given prefix (default: empty string)
+                delimiter:  (str)  Files returned will be limited to those within the top folder, or any one subfolder. (default: null)
         """
         path = API.list_all_files
         files = []
         new_files_to_retrieve = True
         params = {
             'bucketId': self.bucket.bucket_id,
-            'maxFileCount': limit or 10000
+            'maxFileCount': limit or 10000,
+            'prefix': prefix,
+            'delimiter': delimiter
         }
         while new_files_to_retrieve:
             response = self.connector.make_request(path=path, method='post', params=params)
